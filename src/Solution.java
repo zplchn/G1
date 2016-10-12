@@ -30,6 +30,28 @@ public class Solution {
         }
     }
 
+    public static void main(String[] args){
+        Solution st = new Solution();
+        double x = 0;
+        int v = 3;
+        x += v;
+        System.out.println(x);
+        String s = "12,3,#,5,#,";
+        String[] tokens = s.split(",");
+        for (String t : tokens)
+            System.out.println("[" + t + "]");
+        /*
+        [12] split will check till last char but will ignore after last one!
+        [3]
+        [#]
+        [5]
+        [#]
+         */
+
+
+
+    }
+
     //17
     private static final String[] phone = {"", "", "abc", "def","ghi","jkl","mno", "pqrs","tuv","wxyz"};
 
@@ -347,6 +369,34 @@ public class Solution {
             return l + "->" + r;
     }
 
+    //173
+    public class BSTIterator {
+        Deque<TreeNode> stack;
+        public BSTIterator(TreeNode root) {
+            stack = new ArrayDeque<>();
+            pushLeft(root);
+        }
+
+        private void pushLeft(TreeNode root){
+            while (root != null) {
+                stack.push(root);
+                root = root.left;
+            }
+        }
+
+        /** @return whether we have a next smallest number */
+        public boolean hasNext() {
+            return !stack.isEmpty();
+        }
+
+        /** @return the next smallest number */
+        public int next() {
+            TreeNode tn = stack.pop();
+            pushLeft(tn.right);
+            return tn.val;
+        }
+    }
+
     //200
 
     public int numIslands(char[][] grid) {
@@ -593,6 +643,29 @@ public class Solution {
         }
     }
 
+    //249
+    public List<List<String>> groupStrings(String[] strings) {
+        List<List<String>> res = new ArrayList<>();
+        if (strings == null || strings.length == 0)
+            return res;
+        Map<String, List<String>> hm = new HashMap<>();
+        for (String s : strings){
+            if (s == null)
+                continue;
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < s.length(); ++i){
+                sb.append((s.charAt(i) - s.charAt(0) + 26) % 26); //this is delta no need to adjust for 0-based
+                sb.append(" "); //must have deliminitor, like "abc" -> 012 will be ths same as "am"->012
+            }
+            String key = sb.toString();
+            if (!hm.containsKey(key))
+                hm.put(key, new ArrayList<>());
+            hm.get(key).add(s);
+        }
+        res.addAll(hm.values()); //List.addAll(Collection)!!!
+        return res;
+    }
+
     //251
     public class Vector2D implements Iterator<Integer> {
         List<Iterator<Integer>> iters;
@@ -733,6 +806,42 @@ public class Solution {
         }
     }
 
+    //288
+    public class ValidWordAbbr {
+        //note the question is no OTHER words in the dict. -> either no word with the same abbrev, or exist the abbrev but just the same
+        HashMap<String, String> hm;
+
+        public ValidWordAbbr(String[] dictionary) {
+            hm = new HashMap<>();
+            for (String s : dictionary){
+                if (s != null) {
+                    String a = abbrev(s);
+                    if (!hm.containsKey(a)|| hm.get(a).equals(s))
+                        hm.put(a, s);
+                    else
+                        hm.put(a, ""); //as long as a dup i18n no matter what they cancel each other
+                }
+            }
+        }
+
+        private String abbrev(String s){
+            if (s == null || s.length() <= 2)
+                return s;
+            StringBuilder sb = new StringBuilder();
+            sb.append(s.charAt(0));
+            sb.append(s.length() - 2);
+            sb.append(s.charAt(s.length() - 1));
+            return sb.toString();
+        }
+
+        public boolean isUnique(String word) {
+            if (word == null)
+                return false;
+            String a = abbrev(word);
+            return !hm.containsKey(a) || hm.get(a).equals(word);
+        }
+    }
+
     //289
     public void gameOfLife(int[][] board) {
         if (board == null || board.length == 0 || board[0].length == 0)
@@ -766,6 +875,86 @@ public class Solution {
         }
     }
 
+    //295
+    public class MedianFinder {
+        Queue<Integer> minq = new PriorityQueue<>();
+        Queue<Integer> maxq = new PriorityQueue<>(Collections.reverseOrder()); //note how max pq is initialized
+
+        // Adds a number into the data structure.
+        public void addNum(int num) {
+            if (maxq.isEmpty())
+                maxq.offer(num);
+            else if (num > maxq.peek())
+                minq.offer(num);
+            else
+                maxq.offer(num);
+
+        }
+
+        // Returns the median of current data stream
+        public double findMedian() {
+            while (maxq.size() > minq.size() + 1)
+                minq.offer(maxq.poll());
+            while (minq.size() > maxq.size() + 1)
+                maxq.offer(minq.poll());
+            if (maxq.size() == minq.size())
+                return (maxq.peek() +minq.peek())/2.0;
+            else
+                return maxq.size() > minq.size() ? maxq.peek() : minq.peek();
+        }
+    }
+
+    //297
+    public class Codec {
+        // Encodes a tree to a single string.
+        public String serialize(TreeNode root) {
+            if (root == null)
+                return null;
+            StringBuilder sb = new StringBuilder();
+            serializeHelper(root, sb);
+
+            return sb.toString();
+        }
+
+        private void serializeHelper(TreeNode root, StringBuilder sb){
+            if (root == null){
+                sb.append("#,");
+                return;
+            }
+            sb.append(root.val);
+            sb.append(',');
+            serializeHelper(root.left, sb);
+            serializeHelper(root.right, sb);
+        }
+
+        // Decodes your encoded data to tree.
+        public TreeNode deserialize(String data) {
+            if (data == null || data.length() == 0)
+                return null;
+            String[] tokens = data.split(","); //note split will return (1,2,) as 1 and 2<not care after the last deliminitor>
+            List<Integer> index = new ArrayList<>();
+            index.add(0);
+            return deserializeHelper(tokens, index);
+        }
+
+        private TreeNode deserializeHelper(String[] tokens, List<Integer> index){
+            int ind = index.get(0);
+
+            if (ind == tokens.length)
+                return null;
+
+            String s = tokens[ind];
+            index.set(0, ind+1); //must be set before the null check
+            if (s.equals("#"))
+                return null;
+
+            TreeNode root = new TreeNode(Integer.parseInt(s));
+            root.left = deserializeHelper(tokens, index);
+            root.right = deserializeHelper(tokens, index);
+            return root;
+        }
+    }
+
     //298
     private int longestconsec;
     public int longestConsecutive(TreeNode root) {
@@ -796,6 +985,120 @@ public class Solution {
         longestConsecutiveHelper(root.left, root, k);
         longestConsecutiveHelper(root.right, root, k);
     }
+
+    //314
+    public List<List<Integer>> verticalOrder(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        Queue<TreeNode> q1 = new LinkedList<>();
+        Queue<Integer> q2  = new LinkedList<>();
+        Map<Integer, List<Integer>> hm = new HashMap<>();
+        int min = 0, max = 0;
+        int cur = 1, next = 0;
+        q1.offer(root);
+        q2.offer(0);
+
+        while (!q1.isEmpty()){
+            TreeNode tn = q1.poll();
+            int vi = q2.poll();
+            if (!hm.containsKey(vi))
+                hm.put(vi, new ArrayList<>());
+            hm.get(vi).add(tn.val);
+
+            if (tn.left != null){
+                q1.offer(tn.left);
+                q2.offer(vi - 1);
+                min = Math.min(min, vi-1);
+                ++next;
+            }
+            if (tn.right != null){
+                q1.offer(tn.right);
+                q2.offer(vi + 1);
+                max = Math.max(max, vi+1);
+                ++next;
+            }
+
+            if (--cur == 0){
+                cur = next;
+                next = 0;
+            }
+        }
+        for (int i = min; i <= max; ++i)
+            res.add(hm.get(i));
+        return res;
+    }
+
+    //318
+    public int maxProduct(String[] words) {
+        //check two string has common letters - use bit array, in reality, use int instead, =>32 bits
+        if (words == null || words.length == 0)
+            return 0;
+        //since all words are 26 small letters, one int is enough per word
+        int[] masks = new int[words.length];
+        for (int i = 0; i < words.length; ++i){
+            for (int j = 0; j < words[i].length(); ++j){
+                masks[i] |= (1 << (words[i].charAt(j) - 'a'));
+            }
+        }
+        int max = 0;
+        for (int i = 0; i < masks.length; ++i){
+            for (int j = i + 1; j < masks.length; ++j){
+                if ((masks[i] & masks[j]) == 0)
+                    max = Math.max(max, words[i].length() * words[j].length());
+            }
+        }
+        return max;
+    }
+
+    //329
+
+    public int longestIncreasingPath(int[][] matrix) {
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0)
+            return 0;
+        int longestInc = 1;
+        int[][] dp = new int[matrix.length][matrix[0].length];
+        for (int i = 0; i < matrix.length; ++i){
+            for (int j = 0; j < matrix[0].length; ++j){
+                longestInc = Math.max(longestInc,longestIncreasingPathHelper(matrix, i, j, dp));
+            }
+        }
+        return longestInc;
+    }
+
+    private int longestIncreasingPathHelper(int[][] matrix, int i, int j, int[][] dp){
+        if (dp[i][j] > 0)
+            return dp[i][j];
+
+        int[][] off = {{-1,0}, {1, 0}, {0,-1}, {0, 1}};
+        int lmax = 0;
+        for (int k = 0; k < off.length; ++k) {
+            int x = i + off[k][0], y = j + off[k][1];
+            if (x < 0 || x >= matrix.length || y < 0 || y >= matrix[0].length || matrix[x][y] <= matrix[i][j])
+                continue;
+            lmax = Math.max(lmax,longestIncreasingPathHelper(matrix, x, y, dp));
+        }
+        dp[i][j] = lmax + 1;
+        return dp[i][j];
+    }
+
+    //331
+    public boolean isValidSerialization(String preorder) {
+        //a non-null node will generate two new rec and recycle one. a null will not add any. but any node will consume 1.
+        //note initial is 1 since we expect there is one and root is going to consume it.
+        if (preorder == null || preorder.length() == 0)
+            return false;
+        String[] tokens = preorder.split(",");
+        int total = 1;
+        for (String t: tokens){
+            if (--total < 0)
+                return false;
+            if (!t.equals("#"))
+                total += 2;
+        }
+        return total == 0;
+    }
+
 
     //341
 
@@ -849,6 +1152,28 @@ public class Solution {
             }
         }
     }
+
+    //346
+    public class MovingAverage {
+        private Queue<Integer> queue;
+        private double sum;
+        private int size;
+
+        /** Initialize your data structure here. */
+        public MovingAverage(int size) {
+            queue = new LinkedList<Integer>(); //LinkedList only accept a collection to ctor, no size
+            this.size = size; //if want to use the same name, must qualify the instance one with this!!!!! size = size NOT WORKING!
+        }
+
+        public double next(int val) {
+            sum += val;
+            queue.offer(val);
+            if (queue.size() > size)
+                sum -= queue.poll();
+            return sum / queue.size();
+        }
+    }
+
 
 
 
