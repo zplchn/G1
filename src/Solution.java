@@ -249,6 +249,14 @@ public class Solution {
         return digits;
     }
 
+    //104
+    public int maxDepth(TreeNode root) {
+        if (root == null)
+            return 0;
+        return Math.max(maxDepth(root.left), maxDepth(root.right)) + 1;
+
+    }
+
     //128
     public int longestConsecutive(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -696,6 +704,36 @@ public class Solution {
         }
     }
 
+    //252
+    public boolean canAttendMeetings(Interval[] intervals) {
+        if (intervals == null || intervals.length <= 1)
+            return true;
+        Arrays.sort(intervals, (i1, i2)-> i1.start == i2.start ? i1.end - i2.end : i1.start - i2.start);
+        for (int i = 1; i < intervals.length; ++i){
+            if (intervals[i].start < intervals[i-1].end)
+                return false;
+        }
+        return true;
+    }
+
+    //253
+    public int minMeetingRooms(Interval[] intervals) {
+        //greedy, sort by start time and then if a new start is after a finish, can add to the same row, otherwise open a new row
+        if (intervals == null || intervals.length == 0)
+            return 0;
+        Arrays.sort(intervals, (i1, i2) -> i1.start == i2.start ? i1.end - i2.end : i1.start - i2.start);
+        //use pq to each time grab the earliest available row(last end ended)
+        Queue<Integer> pq = new PriorityQueue<>();
+        pq.offer(intervals[0].end);
+
+        for (int i = 1; i < intervals.length; ++i){
+            if (intervals[i].start >= pq.peek())
+                pq.poll();
+            pq.offer(intervals[i].end);
+        }
+        return pq.size();
+    }
+
     //257
     public List<String> binaryTreePaths(TreeNode root) {
         List<String> res = new ArrayList<>();
@@ -806,6 +844,41 @@ public class Solution {
         }
     }
 
+    //284
+    class PeekingIterator implements Iterator<Integer> {
+        Iterator<Integer> iter;
+        Integer next;
+
+        public PeekingIterator(Iterator<Integer> iterator) {
+            // initialize any member here.
+            iter = iterator;
+            next = null;
+        }
+
+        // Returns the next element in the iteration without advancing the iterator.
+        public Integer peek() {
+            if (next == null)
+                next = iter.next();
+            return next;
+        }
+
+        // hasNext() and next() should behave the same as in the Iterator interface.
+        // Override them if needed.
+        @Override
+        public Integer next() {
+            if (next == null)
+                next = iter.next();
+            Integer t = next;
+            next = null;
+            return t;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return next != null || iter.hasNext();
+        }
+    }
+
     //288
     public class ValidWordAbbr {
         //note the question is no OTHER words in the dict. -> either no word with the same abbrev, or exist the abbrev but just the same
@@ -902,6 +975,32 @@ public class Solution {
             else
                 return maxq.size() > minq.size() ? maxq.peek() : minq.peek();
         }
+    }
+
+    //296
+    public int minTotalDistance(int[][] grid) {
+        if (grid == null || grid.length == 0 || grid[0].length == 0)
+            return 0;
+        //the meeting point is the median point in each direction and are not orthogonal, no relational to each other
+        //note it's median point, point in middle index. NOT Average point since there could be still moves
+        List<Integer> rows = new ArrayList<>();
+        List<Integer> cols = new ArrayList<>();
+        for (int i = 0; i < grid.length; ++i){
+            for (int j = 0; j < grid[0].length; ++j){
+                if (grid[i][j] == 1){
+                    rows.add(i);
+                    cols.add(j);
+                }
+            }
+        }
+        //rows are sorted, cols not
+        Collections.sort(cols);
+        int res = 0;
+        for (int i : rows)
+            res += Math.abs(i - rows.get(rows.size()/2));
+        for (int j : cols)
+            res += Math.abs(j - cols.get(cols.size()/2));
+        return res;
     }
 
     //297
@@ -1173,6 +1272,63 @@ public class Solution {
             return sum / queue.size();
         }
     }
+
+    //361
+    public int maxKilledEnemies(char[][] grid) {
+        if (grid == null || grid.length == 0 || grid[0].length == 0)
+            return 0;
+        int rowenemy = 0;
+        int[] colenemy = new int[grid[0].length];
+        int res = 0;
+        for (int i = 0; i < grid.length; ++i){
+            for (int j = 0; j < grid[0].length; ++j){
+                if (j == 0 || grid[i][j-1] == 'W'){
+                    rowenemy = 0; //dont want to reset to 0
+                    //update row enemy count till a Wall
+                    for (int k = j; k < grid[0].length && grid[i][k] != 'W'; ++k)
+                        rowenemy += grid[i][k] == 'E' ? 1 : 0;
+                }
+                if (i == 0 || grid[i-1][j] == 'W'){
+                    colenemy[j] = 0;
+                    for (int k = i; k < grid.length && grid[k][j] != 'W'; ++k)
+                        colenemy[j] += grid[k][j] == 'E' ? 1 : 0;
+                }
+                if (grid[i][j] == '0')
+                    res = Math.max(res, rowenemy + colenemy[j]);
+            }
+        }
+        return res;
+    }
+
+    //369
+    public ListNode plusOne(ListNode head) {
+        if (head == null)
+            return head;
+        ListNode cur = head, firstNon9 = null;
+        while (cur != null){
+            if (cur.val != 9)
+                firstNon9 = cur;
+            cur = cur.next;
+        }
+        if (firstNon9 != null) {
+            ++firstNon9.val;
+            while (firstNon9.next != null) {
+                firstNon9.next.val = 0;
+                firstNon9 = firstNon9.next;
+            }
+            return head;
+        }
+        cur = head;
+        while (cur != null){
+            cur.val = 0;
+            cur = cur.next;
+        }
+        ListNode newHead = new ListNode(1);
+        newHead.next = head;
+        return newHead;
+    }
+
+
 
 
 
