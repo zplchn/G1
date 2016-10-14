@@ -52,6 +52,23 @@ public class Solution {
 
     }
 
+    //1
+    public int[] twoSum1(int[] nums, int target) {
+        int[] res = {-1, -1};
+        if (nums == null || nums.length < 2)
+            return res;
+        Map<Integer, Integer> hm = new HashMap<>();
+        for (int i = 0; i < nums.length; ++i){
+            if (hm.containsKey(target - nums[i])){
+                res[0] = hm.get(target - nums[i]);
+                res[1] = i;
+                break;
+            }
+            hm.put(nums[i], i);
+        }
+        return res;
+    }
+
     //17
     private static final String[] phone = {"", "", "abc", "def","ghi","jkl","mno", "pqrs","tuv","wxyz"};
 
@@ -249,6 +266,39 @@ public class Solution {
         return digits;
     }
 
+    //94
+    public List<Integer> inorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        Deque<TreeNode> st = new ArrayDeque<>();
+        while (root != null || !st.isEmpty()){
+            if (root != null){
+                st.push(root);
+                root = root.left;
+            }
+            else {
+                TreeNode tn = st.pop();
+                res.add(tn.val);
+                root = tn.right;
+            }
+        }
+        return res;
+    }
+
+    //98
+    public boolean isValidBST(TreeNode root) {
+        return isValidBSTHelper(root, Long.MIN_VALUE, Long.MAX_VALUE);
+    }
+
+    private boolean isValidBSTHelper(TreeNode root, long min, long max){
+        if (root == null)
+            return true;
+        if (root.val <=min || root.val >= max)
+            return false;
+        return isValidBSTHelper(root.left, min, root.val) && isValidBSTHelper(root.right, root.val, max);
+    }
+
     //104
     public int maxDepth(TreeNode root) {
         if (root == null)
@@ -287,6 +337,16 @@ public class Solution {
         return res;
     }
 
+    //136
+    public int singleNumber(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int res = 0;
+        for (int i : nums)
+            res ^= i;
+        return res;
+    }
+
     //139
     public boolean wordBreak(String s, Set<String> wordDict) {
         if (s == null || wordDict == null || wordDict.size() == 0)
@@ -302,6 +362,26 @@ public class Solution {
             }
         }
         return dp[dp.length - 1];
+    }
+
+    //144
+    public List<Integer> preorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        Deque<TreeNode> st = new ArrayDeque<>();
+        while (root != null || !st.isEmpty()){
+            if (root != null){
+                res.add(root.val);
+                if (root.right != null)
+                    st.push(root.right);
+                root = root.left;
+            }
+            else {
+                root = st.pop();
+            }
+        }
+        return res;
     }
 
     //155
@@ -375,6 +455,27 @@ public class Solution {
             return Integer.toString(l);
         else
             return l + "->" + r;
+    }
+
+    //167
+    public int[] twoSum(int[] numbers, int target) {
+        int[] res = {-1, -1};
+        if (numbers == null || numbers.length < 2)
+            return res;
+        int l = 0, r = numbers.length - 1;
+        while (l < r){
+            int sum = numbers[l] + numbers[r];
+            if (sum < target)
+                ++l;
+            else if (sum > target)
+                --r;
+            else {
+                res[0] = l + 1;
+                res[1] = r + 1;
+                break;
+            }
+        }
+        return res;
     }
 
     //173
@@ -592,6 +693,36 @@ public class Solution {
         return n > 0 && (n & (n - 1)) == 0;
     }
 
+    //235
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null || p == null || q == null)
+            return null;
+        while (root != null){
+            if (p.val < root.val && q.val < root.val)
+                root = root.left;
+            else if (p.val > root.val && q.val > root.val)
+                root = root.right;
+            else
+                break;
+        }
+        return root;
+    }
+
+    //242
+    public boolean isAnagram(String s, String t) {
+        if (s == null)
+            return t == null;
+        if (t == null)
+            return false;
+        if (s.length() != t.length())
+            return false;
+        char[] ss = s.toCharArray();
+        char[] ts = t.toCharArray();
+        Arrays.sort(ss);
+        Arrays.sort(ts);
+        return new String(ss).equals(new String(ts));
+    }
+
     //246
     public boolean isStrobogrammatic(String num) {
         if (num == null || num.length() == 0)
@@ -773,6 +904,25 @@ public class Solution {
             }
         }
         return res;
+    }
+
+    //266
+    public boolean canPermutePalindrome(String s) {
+        if (s == null || s.length() <= 1)
+            return true;
+        Map<Character, Integer> hm = new HashMap<>();
+        for (int i = 0; i < s.length(); ++i){
+            hm.put(s.charAt(i), hm.containsKey(s.charAt(i))? hm.get(s.charAt(i)) + 1 : 1);
+        }
+        boolean hasOdd = false;
+        for (int v : hm.values()){
+            if (v % 2 == 1){
+                if (hasOdd)
+                    return false;
+                hasOdd = true;
+            }
+        }
+        return true;
     }
 
     //270
@@ -1273,6 +1423,31 @@ public class Solution {
         }
     }
 
+    //359
+    public class Logger {
+        Map<String, Integer> hm;
+
+        /** Initialize your data structure here. */
+        public Logger() {
+            hm = new HashMap<>();
+        }
+
+        /** Returns true if the message should be printed in the given timestamp, otherwise returns false.
+         If this method returns false, the message will not be printed.
+         The timestamp is in seconds granularity. */
+        public boolean shouldPrintMessage(int timestamp, String message) {
+            if (!hm.containsKey(message)){
+                hm.put(message, timestamp);
+                return true;
+            }
+            if (timestamp - hm.get(message) >= 10){
+                hm.put(message, timestamp);
+                return true;
+            }
+            return false;
+        }
+    }
+
     //361
     public int maxKilledEnemies(char[][] grid) {
         if (grid == null || grid.length == 0 || grid[0].length == 0)
@@ -1298,6 +1473,56 @@ public class Solution {
             }
         }
         return res;
+    }
+
+    //362
+    public class HitCounter {
+        class Counter{
+            int timestamp;
+            int count;
+
+            public Counter(int t, int c){
+                timestamp = t;
+                count = c;
+            }
+
+        }
+
+        Queue<Counter> q;
+        int hits;
+        Counter c;
+
+        /** Initialize your data structure here. */
+        public HitCounter() {
+            q = new LinkedList<>();
+            c = new Counter(1, 0);
+        }
+
+        /** Record a hit.
+         @param timestamp - The current timestamp (in seconds granularity). */
+        public void hit(int timestamp) {
+            if (timestamp == c.timestamp)
+                ++c.count;
+            else {
+                q.offer(c);
+                hits += c.count;
+                c = new Counter(timestamp, 1);
+            }
+        }
+
+        /** Return the number of hits in the past 5 minutes.
+         @param timestamp - The current timestamp (in seconds granularity). */
+        public int getHits(int timestamp) {
+            q.offer(c); //when gethits, the last node is not commited yet so commit it first
+            hits += c.count;
+            c = new Counter(timestamp, 0);
+            int start = timestamp - 300 +1 < 1 ? 1 : timestamp - 300+1; //last 5 min is 300- 300 +1!!
+
+            while (!q.isEmpty() && q.peek().timestamp < start) {
+                hits -= q.poll().count;
+            }
+            return hits;
+        }
     }
 
     //369
@@ -1326,6 +1551,26 @@ public class Solution {
         ListNode newHead = new ListNode(1);
         newHead.next = head;
         return newHead;
+    }
+
+    //393
+    public boolean validUtf8(int[] data) {
+        if (data == null || data.length == 0)
+            return true;
+        int cnt = 0;
+        for (int x : data){
+            if (cnt == 0){
+                if ((x >> 5) == 0b110)        cnt = 1;
+                else if ((x >> 4) == 0b1110)  cnt = 2;
+                else if ((x >> 3) == 0b11110) cnt = 3;
+                else if ((x >> 7) != 0) return false;
+            }
+            else {
+                if ((x >> 6) != 0b10) return false;
+                --cnt;
+            }
+        }
+        return cnt == 0; //note if there are missing bytes
     }
 
 
