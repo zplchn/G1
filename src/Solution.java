@@ -30,6 +30,15 @@ public class Solution {
         }
     }
 
+    class Interval{
+        int start, end;
+        public Interval(){start = end = 0;}
+        public Interval(int x, int y){
+            start = x;
+            end = y;
+        }
+    }
+
     public static void main(String[] args){
         Solution st = new Solution();
         double x = 0;
@@ -170,6 +179,36 @@ public class Solution {
         return dummy.next;
     }
 
+    //31
+    public void nextPermutation(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return;
+        int i = nums.length -2;
+        while (i >= 0 && nums[i] >= nums[i+1])
+            --i;
+        if (i < 0) {
+            reverse(nums, 0, nums.length - 1);
+            return;
+        }
+        int j = nums.length - 1;
+        while (j > i && nums[j] <= nums[i])
+            --j;
+        swap(nums, i, j);
+        reverse(nums, i + 1, nums.length - 1);
+    }
+
+    private void reverse(int[] nums, int i, int j){
+        while (i < j){
+            swap(nums, i++, j--);
+        }
+    }
+
+    private void swap(int[] nums, int i, int j){
+        int t = nums[i];
+        nums[i] = nums[j];
+        nums[j] = t;
+    }
+
     //42
     public int trap(int[] height) {
         if (height == null || height.length <= 2)
@@ -190,13 +229,73 @@ public class Solution {
         return res;
     }
 
-    class Interval{
-        int start, end;
-        public Interval(){start = end = 0;}
-        public Interval(int x, int y){
-            start = x;
-            end = y;
+    //46
+    public List<List<Integer>> permute(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (nums == null || nums.length == 0)
+            return res;
+        permuteHelper(nums, 0, new boolean[nums.length], new ArrayList<Integer>(), res);
+        return res;
+    }
+
+    private void permuteHelper(int[] nums, int i, boolean[] used, List<Integer> combi, List<List<Integer>> res){
+        if (i == nums.length){
+            res.add(new ArrayList<>(combi));
+            return;
         }
+        for (int k = 0; k < nums.length; ++k){
+            if (!used[k]){
+                used[k] = true;
+                combi.add(nums[k]);
+                permuteHelper(nums, i + 1, used, combi, res);
+                combi.remove(combi.size() - 1);
+                used[k] = false;
+            }
+        }
+    }
+
+    //47
+    public List<List<Integer>> permuteUnique(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (nums == null || nums.length == 0)
+            return res;
+        Arrays.sort(nums);
+        permuteUniqueHelper(nums, 0, new boolean[nums.length], new ArrayList<Integer>(), res);
+        return res;
+    }
+
+    private void permuteUniqueHelper(int[] nums, int i, boolean[] used, List<Integer> combi, List<List<Integer>> res){
+        if (i == nums.length){
+            res.add(new ArrayList<>(combi));
+            return;
+        }
+        for (int k = 0; k < nums.length; ++k){
+            if (used[k] || (k > 0 && nums[k] == nums[k-1] && !used[k-1])) //when first dup is used we skip, otherwise first used, second also use
+                continue;
+            used[k] = true;
+            combi.add(nums[k]);
+            permuteUniqueHelper(nums, i + 1, used, combi, res);
+            combi.remove(combi.size() - 1);
+            used[k] = false;
+        }
+    }
+
+    //49
+    public List<List<String>> groupAnagrams(String[] strs) {
+        List<List<String>> res = new ArrayList<>();
+        if (strs == null || strs.length == 0)
+            return res;
+        Map<String, List<String>> hm = new HashMap<>();
+        for (String s : strs){
+            char[] ss = s.toCharArray();
+            Arrays.sort(ss);
+            String ns = new String(ss);
+            if (!hm.containsKey(ns))
+                hm.put(ns, new ArrayList<>());
+            hm.get(ns).add(s);
+        }
+        res.addAll(hm.values());
+        return res;
     }
 
     //50
@@ -248,6 +347,29 @@ public class Solution {
         while (i < intervals.size())
             res.add(intervals.get(i++));
         return res;
+    }
+
+    //60
+    public String getPermutation(int n, int k) {
+        if (n <= 0 || k <= 0)
+            return "";
+        k -= 1; //back to 0-based index
+        List<Integer> nums = new ArrayList<>();
+        StringBuilder sb = new StringBuilder();
+        int fac = 1;
+        for (int i = 1; i <= n; ++i) {
+            nums.add(i);
+            fac *= i;
+        }
+
+        for (int i = 0; i < n; ++i){
+            fac /= (n - i);
+            int index = k / fac;
+            k %= fac;
+            sb.append(nums.get(index));
+            nums.remove(index);
+        }
+        return sb.toString();
     }
 
     //66
@@ -1551,6 +1673,55 @@ public class Solution {
         ListNode newHead = new ListNode(1);
         newHead.next = head;
         return newHead;
+    }
+
+    //379
+    public class PhoneDirectory {
+        BitSet bs;
+        int max;
+
+        /** Initialize your data structure here
+         @param maxNumbers - The maximum numbers that can be stored in the phone directory. */
+        public PhoneDirectory(int maxNumbers) {
+            bs = new BitSet(maxNumbers); //note if < 64 will still create a size() = 64 BitSet
+            max = maxNumbers;
+        }
+
+        /** Provide a number which is not assigned to anyone.
+         @return - Return an available number. Return -1 if none is available. */
+        public int get() {
+            if (bs.cardinality() == max) //cardinality() return number of set bit
+                return -1;
+            int x = bs.nextClearBit(0);
+            bs.set(x);
+            return x;
+        }
+
+        /** Check if a number is available or not. */
+        public boolean check(int number) {
+            return !bs.get(number);
+        }
+
+        /** Recycle or release a number. */
+        public void release(int number) {
+            bs.clear(number);
+        }
+    }
+
+    //389
+    public char findTheDifference(String s, String t) {
+        if (s == null || t == null || s.length() +1 != t.length())
+            return 0;
+
+        char res = 0;
+        for (int i = 0; i < s.length(); ++i) {
+            res ^= s.charAt(i);
+        }
+        for (int i = 0; i < t.length(); ++i) {
+            res ^= t.charAt(i);
+        }
+
+        return res;
     }
 
     //393
