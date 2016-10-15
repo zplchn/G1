@@ -78,6 +78,35 @@ public class Solution {
         return res;
     }
 
+    //15
+    public List<List<Integer>> threeSum(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (nums == null || nums.length < 3)
+            return res;
+        Arrays.sort(nums);
+        for (int i = 0; i < nums.length -2; ++i){
+            if (i > 0 && nums[i] == nums[i-1])
+                continue;
+            int l = i + 1, r = nums.length - 1;
+            while (l < r){
+                int sum = nums[i] + nums[l] + nums[r];
+
+                if (sum < 0)
+                    ++l;
+                else if(sum > 0)
+                    --r;
+                else {
+                    res.add(Arrays.asList(nums[i], nums[l++], nums[r--]));
+                    while (l < r && nums[l] == nums[l - 1])
+                        ++l;
+                    while (l < r && nums[r] == nums[r + 1])
+                        --r;
+                }
+            }
+        }
+        return res;
+    }
+
     //17
     private static final String[] phone = {"", "", "abc", "def","ghi","jkl","mno", "pqrs","tuv","wxyz"};
 
@@ -100,6 +129,38 @@ public class Solution {
             letterCombiHelper(digits, i + 1, sb, res);
             sb.deleteCharAt(sb.length() - 1);
         }
+    }
+
+    //18
+    public List<List<Integer>> fourSum(int[] nums, int target) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (nums == null || nums.length < 4)
+            return res;
+        Arrays.sort(nums);
+        for (int i = 0; i < nums.length - 3; ++i){
+            if (i > 0 && nums[i] == nums[i-1])
+                continue;
+            for (int j = i + 1; j < nums.length - 2; ++j){
+                if (j > i + 1 && nums[j] == nums[j - 1])
+                    continue;
+                int l = j + 1, r = nums.length - 1;
+                while (l < r){
+                    int sum = nums[i] + nums[j] + nums[l] + nums[r];
+                    if (sum < target)
+                        ++l;
+                    else if (sum > target)
+                        --r;
+                    else {
+                        res.add(Arrays.asList(nums[i],nums[j],nums[l++],nums[r--]));
+                        while (l < r && nums[l] == nums[l - 1])
+                            ++l;
+                        while (l < r && nums[r] == nums[r + 1])
+                            --r;
+                    }
+                }
+            }
+        }
+        return res;
     }
 
     //20
@@ -207,6 +268,58 @@ public class Solution {
         int t = nums[i];
         nums[i] = nums[j];
         nums[j] = t;
+    }
+
+    //39
+    public List<List<Integer>> combinationSum(int[] candidates, int target) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (candidates == null || candidates.length == 0)
+            return res;
+        Arrays.sort(candidates);
+        combinationSumHelper(candidates, target, 0, 0, new ArrayList<Integer>(), res);
+        return res;
+    }
+
+    private void combinationSumHelper(int[] candidates, int target, int i, int sum, List<Integer> combi, List<List<Integer>> res){
+        if (sum == target){
+            res.add(new ArrayList<>(combi));
+            return;
+        }
+        for (int k = i; k < candidates.length; ++k){
+            if (k > i && candidates[k] == candidates[k-1])
+                continue;
+            if (sum + candidates[k] <= target){
+                combi.add(candidates[k]);
+                combinationSumHelper(candidates, target, k, sum + candidates[k], combi, res);
+                combi.remove(combi.size() - 1);
+            }
+        }
+    }
+
+    //40
+    public List<List<Integer>> combinationSum2(int[] candidates, int target) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (candidates == null || candidates.length == 0)
+            return res;
+        Arrays.sort(candidates);
+        combinationSum2Helper(candidates, target, 0, 0, new ArrayList<Integer>(), res);
+        return res;
+    }
+
+    private void combinationSum2Helper(int[] candidates, int target, int i, int sum, List<Integer> combi, List<List<Integer>> res){
+        if (sum == target){
+            res.add(new ArrayList<>(combi));
+            return;
+        }
+        for (int k = i; k < candidates.length; ++k){
+            if (k > i && candidates[k] == candidates[k - 1])
+                continue;
+            if (sum +candidates[k] <= target){
+                combi.add(candidates[k]);
+                combinationSum2Helper(candidates, target, k + 1, sum + candidates[k], combi, res);
+                combi.remove(combi.size() - 1);
+            }
+        }
     }
 
     //42
@@ -372,6 +485,25 @@ public class Solution {
         return sb.toString();
     }
 
+    //64
+    public int minPathSum(int[][] grid) {
+        if (grid == null || grid.length == 0 || grid[0].length == 0)
+            return 0;
+        for (int i = 0; i < grid.length; ++i){
+            for (int j = 0; j < grid[0].length; ++j){
+                if (i == 0 && j == 0)
+                    continue;
+                else if (i == 0)
+                    grid[i][j] += grid[i][j-1];
+                else if (j == 0)
+                    grid[i][j] += grid[i-1][j];
+                else
+                    grid[i][j] += Math.min(grid[i-1][j], grid[i][j-1]);
+            }
+        }
+        return grid[grid.length - 1][grid[0].length - 1];
+    }
+
     //66
     public int[] plusOne(int[] digits) {
         if (digits == null || digits.length == 0)
@@ -429,6 +561,79 @@ public class Solution {
 
     }
 
+    //112
+    public boolean hasPathSum(TreeNode root, int sum) {
+        if (root == null)
+            return false;
+        if (root.left == null && root.right == null)
+            return root.val == sum;
+        if (hasPathSum(root.left, sum - root.val) || hasPathSum(root.right, sum - root.val))
+            return true;
+        return false;
+    }
+
+    //113
+    public List<List<Integer>> pathSum(TreeNode root, int sum) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        pathSumHelper(root, sum, new ArrayList<Integer>(), res);
+        return res;
+    }
+
+    private void pathSumHelper(TreeNode root, int sum, List<Integer> combi, List<List<Integer>> res){
+        if (root == null)
+            return;
+        if (root.left == null && root.right == null){
+            if (sum == root.val){
+                List<Integer> l = new ArrayList<>(combi);
+                l.add(root.val);
+                res.add(l);
+            }
+            return;
+        }
+        combi.add(root.val);
+        pathSumHelper(root.left, sum - root.val, combi, res);
+        pathSumHelper(root.right, sum - root.val, combi, res);
+        combi.remove(combi.size() - 1);
+    }
+
+    //124
+    private int maxPath;
+    public int maxPathSum(TreeNode root) {
+        if (root == null)
+            return 0;
+        maxPath = root.val;
+        maxPathSumHelper(root);
+        return this.maxPath;
+    }
+
+    private int maxPathSumHelper(TreeNode root){
+        if (root == null)
+            return 0;
+        int lsum = Math.max(maxPathSumHelper(root.left), 0);
+        int rsum = Math.max(maxPathSumHelper(root.right), 0);
+        if (lsum + rsum + root.val > maxPath)
+            maxPath = lsum + rsum + root.val;
+        return root.val + Math.max(lsum, rsum);
+    }
+
+    //125
+    public boolean isPalindrome(String s) {
+        if (s == null || s.length() == 0)
+            return true;
+        int l = 0, r = s.length() - 1;
+        while (l < r){
+            if (!Character.isLetterOrDigit(s.charAt(l)))
+                ++l;
+            else if (!Character.isLetterOrDigit(s.charAt(r)))
+                --r;
+            else if(Character.toLowerCase(s.charAt(l++)) != Character.toLowerCase(s.charAt(r--)))
+                return false;
+        }
+        return true;
+    }
+
     //128
     public int longestConsecutive(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -457,6 +662,27 @@ public class Solution {
             iter = hs.iterator();
         }
         return res;
+    }
+
+    //129
+    private int sumNumbers;
+    public int sumNumbers(TreeNode root) {
+        if (root == null)
+            return 0;
+        sumNumbersHelper(root, 0);
+        return this.sumNumbers;
+    }
+
+    private void sumNumbersHelper(TreeNode root, int pre){
+        if (root == null)
+            return;
+        if (root.left == null && root.right == null){
+            this.sumNumbers += pre + root.val;
+            return;
+        }
+        pre = 10 * (pre + root.val);
+        sumNumbersHelper(root.left, pre);
+        sumNumbersHelper(root.right, pre);
     }
 
     //136
@@ -1046,6 +1272,40 @@ public class Solution {
         }
         return true;
     }
+
+    //267
+//    public List<String> generatePalindromes(String s) {
+//        List<String> res = new ArrayList<>();
+//        if (s == null || s.length() == 0)
+//            return res;
+//        //first count odd and even
+//
+//        Map<Character, Integer> tm = new TreeMap<>();
+//        for (int i = 0; i < s.length(); ++i){
+//            char c = s.charAt(i);
+//            tm.put(c, tm.containsKey(c) ? tm.get(c) + 1 : 1);
+//        }
+//        char c = 0;
+//        StringBuilder sb = new StringBuilder();
+//
+//        for (Map.Entry<Character, Integer> e : tm.entrySet()){
+//
+//            if (e.getValue() % 2 == 1){
+//                if (c != 0)
+//                    return res;
+//                c = e.getKey();
+//            }
+//            else {
+//                for (int k = 0; k < e.getValue()/2; ++k)
+//                sb.append(e.getKey());
+//            }
+//        }
+//        //permutation2
+//        //add odd c
+//        // add reverse part
+//        return res;
+//
+//    }
 
     //270
     private int closetValue;
@@ -1673,6 +1933,12 @@ public class Solution {
         ListNode newHead = new ListNode(1);
         newHead.next = head;
         return newHead;
+    }
+
+    //371
+    public int getSum(int a, int b) {
+
+
     }
 
     //379
