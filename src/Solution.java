@@ -107,6 +107,33 @@ public class Solution {
         return res;
     }
 
+    //16
+    public int threeSumClosest(int[] nums, int target) {
+        if (nums == null || nums.length < 3)
+            return 0;
+        Arrays.sort(nums);
+        int diff = Integer.MAX_VALUE, res = 0;
+        for (int i = 0; i < nums.length - 2; ++i){
+            if (i > 0 && nums[i] == nums[i-1])
+                continue;
+            int l = i + 1, r = nums.length - 1;
+            while (l < r){
+                int sum = nums[i] + nums[l] + nums[r];
+                if (Math.abs(target - sum) < diff){
+                    diff = Math.abs(target - sum);
+                    res = sum;
+                }
+                if (sum < target)
+                    ++l;
+                else if (sum > target)
+                    --r;
+                else
+                    break;
+            }
+        }
+        return res;
+    }
+
     //17
     private static final String[] phone = {"", "", "abc", "def","ghi","jkl","mno", "pqrs","tuv","wxyz"};
 
@@ -553,12 +580,121 @@ public class Solution {
         return isValidBSTHelper(root.left, min, root.val) && isValidBSTHelper(root.right, root.val, max);
     }
 
+    //102
+    public List<List<Integer>> levelOrder(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+        int cur = 1, next = 0;
+        List<Integer> lvl = new ArrayList<>();
+
+        while (!q.isEmpty()){
+            TreeNode tn = q.poll();
+            lvl.add(tn.val);
+            if (tn.left != null){
+                q.offer(tn.left);
+                ++next;
+            }
+            if (tn.right != null){
+                q.offer(tn.right);
+                ++next;
+            }
+            if (--cur == 0){
+                res.add(lvl);
+                lvl = new ArrayList<>();
+                cur = next;
+                next = 0;
+            }
+        }
+        return res;
+    }
+
+    //103
+    public List<List<Integer>> zigzagLevelOrder(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+        int cur = 1, next = 0;
+        boolean rev = false;
+        List<Integer> lvl = new ArrayList<>();
+        while (!q.isEmpty()){
+            TreeNode tn = q.poll();
+            lvl.add(tn.val);
+            if (tn.left != null){
+                q.offer(tn.left);
+                ++next;
+            }
+            if (tn.right != null){
+                q.offer(tn.right);
+                ++next;
+            }
+            if (--cur == 0){
+                if (rev)
+                    Collections.reverse(lvl);
+                rev = !rev;
+                res.add(lvl);
+                lvl = new ArrayList<>();
+                cur = next;
+                next = 0;
+            }
+        }
+        return res;
+    }
+
     //104
     public int maxDepth(TreeNode root) {
         if (root == null)
             return 0;
         return Math.max(maxDepth(root.left), maxDepth(root.right)) + 1;
 
+    }
+
+    //107
+    public List<List<Integer>> levelOrderBottom(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        Queue<TreeNode> q = new LinkedList<>();
+        q.offer(root);
+        int cur = 1, next = 0;
+        List<Integer> lvl = new ArrayList<>();
+
+        while (!q.isEmpty()){
+            TreeNode tn = q.poll();
+            lvl.add(tn.val);
+            if (tn.left != null){
+                q.offer(tn.left);
+                ++next;
+            }
+            if (tn.right != null){
+                q.offer(tn.right);
+                ++next;
+            }
+            if (--cur == 0){
+                res.add(lvl);
+                lvl = new ArrayList<>();
+                cur = next;
+                next = 0;
+            }
+        }
+        Collections.reverse(res);
+        return res;
+    }
+
+    //111
+    public int minDepth(TreeNode root) {
+        if (root == null)
+            return 0;
+        if (root.left == null)
+            return minDepth(root.right) + 1;
+        else if (root.right == null)
+            return minDepth(root.left) + 1;
+        else
+            return Math.min(minDepth(root.left), minDepth(root.right)) + 1;
     }
 
     //112
@@ -712,6 +848,47 @@ public class Solution {
         return dp[dp.length - 1];
     }
 
+    //141
+    public boolean hasCycle(ListNode head) {
+        if (head == null)
+            return false;
+        ListNode slow, fast;
+        slow = fast = head;
+        while (fast != null && fast.next != null){
+            slow = slow.next;
+            fast = fast.next.next;
+            if (slow == fast)
+                return true;
+        }
+        return false;
+    }
+
+    //142
+    public ListNode detectCycle(ListNode head) {
+        if (head == null)
+            return head;
+        ListNode slow, fast;
+        slow = fast = head;
+        boolean hasCycle = false;
+        while (fast != null && fast.next != null){
+            slow = slow.next;
+            fast = fast.next.next;
+            if (slow == fast){
+                hasCycle = true;
+                break;
+            }
+        }
+        if (!hasCycle)
+            return null;
+        slow = head;
+        while (slow != fast){
+            slow = slow.next;
+            fast = fast.next;
+        }
+        return fast;
+    }
+
+
     //144
     public List<Integer> preorderTraversal(TreeNode root) {
         List<Integer> res = new ArrayList<>();
@@ -730,6 +907,42 @@ public class Solution {
             }
         }
         return res;
+    }
+
+    //150
+    public int evalRPN(String[] tokens) {
+        if (tokens == null || tokens.length == 0)
+            return 0;
+        Deque<Integer> st = new ArrayDeque<>();
+        String op = "+-*/";
+
+        for (String s : tokens){
+            if (!op.contains(s))
+                st.push(Integer.parseInt(s));
+            else {
+                if (st.size() < 2)
+                    return -1;
+                int y = st.pop();
+                int x = st.pop();
+                switch(s){
+                    case "+":
+                        st.push(x + y);
+                        break;
+                    case "-":
+                        st.push(x - y);
+                        break;
+                    case "*":
+                        st.push(x * y);
+                        break;
+                    case "/":
+                        st.push(x / y);
+                        break;
+                    default:
+                        break;
+                }
+            }
+        }
+        return st.pop();
     }
 
     //155
@@ -824,6 +1037,26 @@ public class Solution {
             }
         }
         return res;
+    }
+
+    //170
+    public class TwoSum {
+        Map<Integer, Integer> hm = new HashMap<>();
+
+        // Add the number to an internal data structure.
+        public void add(int number) {
+            hm.put(number, hm.containsKey(number)? 2: 1);
+        }
+
+        // Find if there exists any pair of numbers which sum is equal to the value.
+        public boolean find(int value) {
+            for (int x : hm.keySet()){
+                int y = value - x;
+                if (hm.containsKey(y) && (x != y || hm.get(x) > 1))
+                    return true;
+            }
+            return false;
+        }
     }
 
     //173
@@ -989,6 +1222,31 @@ public class Solution {
         sb.deleteCharAt(sb.length() - 1);
     }
 
+    //216
+    public List<List<Integer>> combinationSum3(int k, int n) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (k <= 0 || n <= 0)
+            return res;
+        combinationSum3Helper(n, k, 1, 0, 0, new ArrayList<Integer>(), res);
+        return res;
+    }
+
+    private void combinationSum3Helper(int n, int k, int s, int i, int sum, List<Integer> combi, List<List<Integer>> res){
+        if (i == k){
+            if (sum == n){
+                res.add(new ArrayList<>(combi));
+            }
+            return;
+        }
+        for (int j = s; j <= 9; ++j){
+            if (sum + j <= n){
+                combi.add(j);
+                combinationSum3Helper(n, k, j + 1, i + 1, sum + j, combi, res);
+                combi.remove(combi.size() - 1);
+            }
+        }
+    }
+
     //228
     public List<String> summaryRanges(int[] nums) {
         List<String> res = new ArrayList<>();
@@ -1042,7 +1300,7 @@ public class Solution {
     }
 
     //235
-    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+    public TreeNode lowestCommonAncestorBST(TreeNode root, TreeNode p, TreeNode q) {
         if (root == null || p == null || q == null)
             return null;
         while (root != null){
@@ -1054,6 +1312,19 @@ public class Solution {
                 break;
         }
         return root;
+    }
+
+    //236
+    public TreeNode lowestCommonAncestor(TreeNode root, TreeNode p, TreeNode q) {
+        if (root == null || p == null || q == null)
+            return null;
+        if (root == p || root == q)
+            return root;
+        TreeNode tl = lowestCommonAncestor(root.left, p, q);
+        TreeNode tr = lowestCommonAncestor(root.right, p, q);
+        if (tl != null && tr != null)
+            return root;
+        return tl != null? tl : tr;
     }
 
     //242
