@@ -657,6 +657,24 @@ public class Solution {
         return sb.toString();
     }
 
+    //78
+    public List<List<Integer>> subsets(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (nums == null)
+            return res;
+        res.add(new ArrayList<>());
+        for (int i : nums){
+            //for (List<Integer> l : res){ foreach loop cannot modify underlyint list ->java.util.ConcurrentModificationException
+            int size = res.size();
+            for (int j = 0; j < size; ++j){
+                List<Integer> nl = new ArrayList<>(res.get(j));
+                nl.add(i);
+                res.add(nl);
+            }
+        }
+        return res;
+    }
+
     //80
     public int removeDuplicates2(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -708,6 +726,26 @@ public class Solution {
                 cur = cur.next;
         }
         return head;
+    }
+
+    //90
+    public List<List<Integer>> subsetsWithDup(int[] nums) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (nums == null)
+            return res;
+        res.add(new ArrayList<>());
+        Arrays.sort(nums);
+        int size = 1;
+        for (int i = 0; i < nums.length; ++i){
+            int start = i > 0 && nums[i] == nums[i-1] ? size: 0;
+            size = res.size();
+            for (int j = start; j < size; ++j){
+                List<Integer> nl = new ArrayList<>(res.get(j));
+                nl.add(nums[i]);
+                res.add(nl);
+            }
+        }
+        return res;
     }
 
     //94
@@ -2608,6 +2646,41 @@ public class Solution {
             }
             return hits;
         }
+    }
+
+    //368
+    public List<Integer> largestDivisibleSubset(int[] nums) {
+        List<Integer> res = new ArrayList<>();
+        if (nums == null || nums.length == 0)
+            return res;
+        Arrays.sort(nums); //if (a, b, c) in ascending order, b % a == 0, c % b == 0 then must c % a == 0
+        int[] dp = new int[nums.length];
+        Arrays.fill(dp, 1);
+        int max_dp = 1, max_index = 0;
+        //when need to give the trace for a DP q. here is the example!!!
+        int[] lastStep = new int[nums.length];
+        Arrays.fill(lastStep, -1);
+
+        for (int i = 0; i < nums.length; ++i){
+            for (int j = i - 1; j >= 0; --j){
+                if (nums[i] % nums[j] == 0){
+                    if (dp[j] + 1 > dp[i]) {
+                        dp[i] = dp[j] + 1;
+                        lastStep[i] = j;
+                    }
+
+                    if (dp[i] > max_dp){
+                        max_dp = dp[i];
+                        max_index = i;
+                    }
+                    //break; //the first one on the left will give the largest # of divisible-> WRONG!!! [1,2,4,8,9,72] 9 HAS LESS THAN 8
+                }
+            }
+        }
+        //System.out.println(Arrays.toString(dp)); HOW TO PRINT AN ARRAY IN JAVA
+        for (int i = max_index; i != -1; i = lastStep[i])
+            res.add(nums[i]);
+        return res;
     }
 
     //369
