@@ -78,6 +78,27 @@ public class Solution {
         return res;
     }
 
+    //2
+    public ListNode addTwoNumbers(ListNode l1, ListNode l2) {
+        if (l1 == null)
+            return l2;
+        if (l2 == null)
+            return l1;
+        int sum = 0, carry = 0;
+        ListNode dummy = new ListNode(0);
+        ListNode pre = dummy;
+        while (l1 != null || l2 != null || carry != 0){
+            sum = (l1!= null? l1.val: 0) + (l2!= null? l2.val: 0) + carry;
+            pre.next = new ListNode(sum % 10);
+            pre = pre.next;
+            carry = sum / 10;
+            l1 = l1!=null? l1.next: l1;
+            l2 = l2!=null? l2.next: l2;
+        }
+        pre.next = null;
+        return dummy.next;
+    }
+
     //15
     public List<List<Integer>> threeSum(int[] nums) {
         List<List<Integer>> res = new ArrayList<>();
@@ -265,6 +286,19 @@ public class Solution {
         }
         cur.next = null;
         return dummy.next;
+    }
+
+    //26
+    public int removeDuplicates(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int l = 0, r = 1;
+        while (r < nums.length){
+            if (nums[l] != nums[r])
+                nums[++l] = nums[r];
+            ++r;
+        }
+        return l + 1;
     }
 
     //31
@@ -512,6 +546,39 @@ public class Solution {
         return sb.toString();
     }
 
+    //62
+    public int uniquePaths(int m, int n) {
+        if (m <= 0 || n <= 0)
+            return 0;
+        int[][] dp = new int[m][n];
+        dp[0][0] = 1;
+
+        for (int i = 0; i < dp.length; ++i){
+            for (int j = 0; j < dp[0].length; ++j){
+                dp[i][j] += (i > 0? dp[i-1][j]: 0) + (j > 0? dp[i][j-1]: 0);
+            }
+        }
+        return dp[dp.length - 1][dp[0].length - 1];
+    }
+
+    //63
+    public int uniquePathsWithObstacles(int[][] og) {
+        if (og == null || og.length == 0 || og[0].length == 0)
+            return 0;
+        if (og[0][0] == 1)
+            return 0;
+        og[0][0] = 1; //need to set start to 1!
+        for (int i = 0; i < og.length; ++i){
+            for (int j = 0; j < og[0].length; ++j){
+                if (og[i][j] == 1 && !(i == 0 && j == 0))
+                    og[i][j] = 0;
+                else
+                    og[i][j] += (i > 0? og[i-1][j]: 0) + (j > 0?og[i][j-1]: 0);
+            }
+        }
+        return og[og.length - 1][og[0].length - 1];
+    }
+
     //64
     public int minPathSum(int[][] grid) {
         if (grid == null || grid.length == 0 || grid[0].length == 0)
@@ -545,6 +612,102 @@ public class Solution {
         }
         ++digits[i];
         return digits;
+    }
+
+    //67
+    public String addBinary(String a, String b) {
+        if (a == null || a.length() == 0)
+            return b;
+        if (b == null || b.length() == 0)
+            return a;
+        StringBuilder sb = new StringBuilder();
+        int i = a.length() - 1, j = b.length() - 1, carry = 0;
+        while (i >= 0 || j >= 0 || carry != 0){
+            int sum = (i >= 0? a.charAt(i--) - '0': 0) + (j >= 0? b.charAt(j--) - '0': 0) + carry;
+            sb.append(sum % 2);
+            carry = sum / 2;
+        }
+        return sb.reverse().toString();
+    }
+
+    //71
+    public String simplifyPath(String path) {
+        if (path == null || path.length() == 0)
+            return path;
+        String[] tokens = path.split("/");
+        Deque<String> st = new ArrayDeque<>();
+        StringBuilder sb = new StringBuilder();
+
+        for (String s : tokens){
+            if (s.equals("") || s.equals("."))
+                continue;
+            else if (s.equals("..")){
+                if (!st.isEmpty())
+                    st.pop();
+            }
+            else {
+                st.push(s);
+            }
+        }
+        if (st.isEmpty())
+            return "/";
+        while (!st.isEmpty()){
+            sb.insert(0, "/" + st.pop());
+        }
+        return sb.toString();
+    }
+
+    //80
+    public int removeDuplicates2(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        boolean dup = false;
+        int l = 0, r = 1;
+        while (r < nums.length){
+            if (nums[l] != nums[r]) {
+                nums[++l] = nums[r];
+                dup = false;
+            }
+            else if (!dup) {
+                dup = true;
+                nums[++l] = nums[r];
+            }
+            ++r;
+        }
+        return l + 1;
+    }
+
+    //82
+    public ListNode deleteDuplicates2(ListNode head) {
+        if (head == null || head.next == null)
+            return head;
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode pre = dummy, cur = head;
+        while (cur != null){
+            while (cur.next != null && cur.val == cur.next.val)
+                cur = cur.next;
+            if (pre.next != cur)
+                pre.next = cur.next;
+            else
+                pre = pre.next;
+            cur = cur.next;
+        }
+        return dummy.next;
+    }
+
+    //83
+    public ListNode deleteDuplicates(ListNode head) {
+        if (head == null)
+            return head;
+        ListNode cur = head;
+        while (cur != null && cur.next != null){
+            if (cur.val == cur.next.val)
+                cur.next = cur.next.next;
+            else
+                cur = cur.next;
+        }
+        return head;
     }
 
     //94
@@ -685,6 +848,71 @@ public class Solution {
         return res;
     }
 
+    //108
+    public TreeNode sortedArrayToBST(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return null;
+        return sortedArrayToBSTHelper(nums, 0, nums.length - 1);
+    }
+
+    private TreeNode sortedArrayToBSTHelper(int[] nums, int l, int r){
+        if (l > r)
+            return null;
+        int m = l + ((r - l) >> 1);
+        TreeNode root = new TreeNode(nums[m]);
+        root.left = sortedArrayToBSTHelper(nums, l, m - 1);
+        root.right = sortedArrayToBSTHelper(nums, m + 1, r);
+        return root;
+    }
+
+    //109
+    private ListNode inListH;
+    public TreeNode sortedListToBST(ListNode head) {
+        if (head == null)
+            return null;
+        ListNode cur = head;
+        int len = 0;
+        inListH = head;
+        while (cur != null){
+            ++len;
+            cur = cur.next;
+        }
+        return sortedListToBSTHelper(0, len - 1);
+    }
+
+    private TreeNode sortedListToBSTHelper(int l, int r){
+        if (l > r)
+            return null;
+        int m = l + ((r - l) >> 1);
+        TreeNode lc = sortedListToBSTHelper(l, m - 1);
+        TreeNode root = new TreeNode(inListH.val);
+        inListH = inListH.next;
+        root.left = lc;
+        root.right = sortedListToBSTHelper(m + 1, r);
+        return root;
+    }
+
+    //110
+    public boolean isBalanced(TreeNode root) {
+        if (root == null)
+            return true;
+        return isBalancedHelper(root) != -1;
+    }
+
+    private int isBalancedHelper(TreeNode root){
+        if (root == null)
+            return 0;
+        int lh = isBalancedHelper(root.left);
+        if (lh == -1)
+            return -1;
+        int rh = isBalancedHelper(root.right);
+        if (rh == -1)
+            return -1;
+        if (Math.abs(lh - rh) > 1)
+            return -1;
+        return Math.max(lh, rh) + 1;
+    }
+
     //111
     public int minDepth(TreeNode root) {
         if (root == null)
@@ -819,6 +1047,51 @@ public class Solution {
         pre = 10 * (pre + root.val);
         sumNumbersHelper(root.left, pre);
         sumNumbersHelper(root.right, pre);
+    }
+
+    //130
+    public void solve(char[][] board) {
+        if (board == null || board.length == 0 || board[0].length == 0)
+            return;
+        for (int j = 0; j < board[0].length; ++j) {
+            if (board[0][j] == 'O')
+                floodFill(board, 0, j);
+            if (board[board.length - 1][j] == 'O')
+                floodFill(board, board.length - 1, j);
+        }
+        for (int i = 0; i < board.length; ++i) {
+            if (board[i][0] == 'O')
+                floodFill(board, i, 0);
+            if (board[i][board[0].length - 1] == 'O')
+                floodFill(board, i, board[0].length - 1);
+        }
+        for (int i = 0; i < board.length; ++i){
+            for (int j = 0; j < board[0].length; ++j){
+                if (board[i][j] == 'O')
+                    board[i][j] = 'X';
+                if (board[i][j] == '#')
+                    board[i][j] = 'O';
+            }
+        }
+    }
+
+    private void floodFill(char[][] board, int i, int j){
+        Queue<Integer> q = new LinkedList<>();
+        board[i][j] = '#';
+        q.offer(i * board[0].length + j);
+        int[] xo = {-1, 1,  0, 0};
+        int[] yo = {0,  0, -1, 1};
+        while (!q.isEmpty()) {
+            int n = q.poll();
+            int nx = n / board[0].length, ny = n % board[0].length;
+            for (int k = 0; k < xo.length; ++k) {
+                int x = nx + xo[k], y = ny + yo[k];
+                if (x >= 0 && x < board.length && y >= 0 && y < board[0].length && board[x][y] == 'O'){
+                    board[x][y] = '#';
+                    q.offer(x * board[0].length + y);
+                }
+            }
+        }
     }
 
     //136
@@ -976,6 +1249,37 @@ public class Solution {
         }
     }
 
+    //160
+    public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
+        if (headA == null || headB == null)
+            return null;
+        int n1 = 0, n2 = 0;
+        ListNode ha = headA, hb = headB;
+        while (ha != null){
+            ++n1;
+            ha = ha.next;
+        }
+        while (hb != null){
+            ++n2;
+            hb = hb.next;
+        }
+        ha = headA;
+        hb = headB;
+        while (n1 - n2 > 0){
+            ha = ha.next;
+            --n1;
+        }
+        while (n2 - n1 > 0){
+            hb = hb.next;
+            --n2;
+        }
+        while (ha != null && ha != hb){
+            ha = ha.next;
+            hb = hb.next;
+        }
+        return ha;
+    }
+
     //162
     public int findPeakElement(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -1039,6 +1343,22 @@ public class Solution {
         return res;
     }
 
+    //169
+    public int majorityElement(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int cnt = 1, major = nums[0];
+        for (int i = 1; i < nums.length; ++i){
+            if (nums[i] == major)
+                ++cnt;
+            else if (--cnt == 0){
+                cnt = 1;
+                major = nums[i];
+            }
+        }
+        return major;
+    }
+
     //170
     public class TwoSum {
         Map<Integer, Integer> hm = new HashMap<>();
@@ -1087,8 +1407,35 @@ public class Solution {
         }
     }
 
-    //200
+    //199
+    public List<Integer> rightSideView(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        Queue<TreeNode> queue = new LinkedList<>();
+        queue.offer(root);
+        int cur = 1, next = 0;
 
+        while (!queue.isEmpty()){
+            TreeNode tn = queue.poll();
+            if(tn.left != null){
+                queue.offer(tn.left);
+                ++next;
+            }
+            if(tn.right != null){
+                queue.offer(tn.right);
+                ++next;
+            }
+            if (--cur == 0){
+                res.add(tn.val);
+                cur = next;
+                next = 0;
+            }
+        }
+        return res;
+    }
+
+    //200
     public int numIslands(char[][] grid) {
         if (grid == null || grid.length == 0 || grid[0].length == 0)
             return 0;
@@ -1245,6 +1592,44 @@ public class Solution {
                 combi.remove(combi.size() - 1);
             }
         }
+    }
+
+    //217
+    public boolean containsDuplicate(int[] nums) {
+        if (nums == null || nums.length <= 1)
+            return false;
+        Set<Integer> hs = new HashSet<>();
+        for (int i : nums){
+            if (hs.contains(i))
+                return true;
+            hs.add(i);
+        }
+        return false;
+    }
+
+    //219
+    public boolean containsNearbyDuplicate(int[] nums, int k) {
+        if (nums == null || nums.length <= 1)
+            return false;
+        Map<Integer, Integer> hm = new HashMap<>();
+        for (int i = 0; i < nums.length; ++i){
+            if (hm.containsKey(nums[i]) && (i - hm.get(nums[i]) <= k))
+                return true;
+            hm.put(nums[i], i);
+        }
+        return false;
+    }
+
+    //226
+    public TreeNode invertTree(TreeNode root) {
+        if (root == null)
+            return null;
+        TreeNode t = root.left;
+        root.left = root.right;
+        root.right = t;
+        invertTree(root.left);
+        invertTree(root.right);
+        return root;
     }
 
     //228
@@ -1600,6 +1985,26 @@ public class Solution {
             closetValueHelper(root.left, target, diff);
     }
 
+    //277
+    boolean knows(int a, int b){return true;}
+
+    public int findCelebrity(int n) {
+        if (n <= 1)
+            return n;
+        int l = 0, r = n - 1;
+        while (l < r){
+            if (knows(l, r))
+                ++l;
+            else
+                --r;
+        }
+        for (int i = 0; i < n; ++i){
+            if (i != l && (!knows(i, l) || knows(l, i)))
+                return -1;
+        }
+        return l;
+    }
+
     //279
     public int numSquares(int n) {
         if (n < 1)
@@ -1680,6 +2085,33 @@ public class Solution {
         public boolean hasNext() {
             return next != null || iter.hasNext();
         }
+    }
+
+    //285
+    public TreeNode inorderSuccessor(TreeNode root, TreeNode p) {
+        //not found, right child's leftmost, last left
+        if (root == null || p == null)
+            return null;
+        TreeNode lastLeft = null;
+        while (root != null){
+            if (p.val > root.val)
+                root = root.right;
+            else if (p.val < root.val){
+                lastLeft = root;
+                root = root.left;
+            }
+            else
+                break;
+        }
+        if (root == null)//not found
+            return null;
+        if (root.right != null){
+            root = root.right;
+            while (root.left != null)
+                root = root.left;
+            return root;
+        }
+        return lastLeft;
     }
 
     //288
