@@ -331,6 +331,31 @@ public class Solution {
         nums[j] = t;
     }
 
+    //33
+    public int search(int[] nums, int target) {
+        if (nums == null || nums.length == 0)
+            return -1;
+        int l = 0, r = nums.length - 1, m;
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            if (nums[m] == target)
+                return m;
+            else if (nums[m] < nums[r]){
+                if (target > nums[m] && target <= nums[r])
+                    l = m + 1;
+                else
+                    r = m - 1;
+            }
+            else {
+                if (target >= nums[l] && target < nums[m])
+                    r = m - 1;
+                else
+                    l = m + 1;
+            }
+        }
+        return -1;
+    }
+
     //39
     public List<List<Integer>> combinationSum(int[] candidates, int target) {
         List<List<Integer>> res = new ArrayList<>();
@@ -657,6 +682,28 @@ public class Solution {
         return sb.toString();
     }
 
+    //75
+    public void sortColors(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return;
+        int i0 = 0, i1 = 0, i2 = nums.length - 1;
+        while (i1 <= i2){
+            if (nums[i1] == 0){
+                int t = nums[i0];
+                nums[i0] = nums[i1];
+                nums[i1] = t;
+                ++i0;
+                ++i1;
+            }
+            else if (nums[i1] == 2){
+                nums[i1] = nums[i2];
+                nums[i2--] = 2;
+            }
+            else
+                ++i1;
+        }
+    }
+
     //78
     public List<List<Integer>> subsets(int[] nums) {
         List<List<Integer>> res = new ArrayList<>();
@@ -673,6 +720,34 @@ public class Solution {
             }
         }
         return res;
+    }
+
+    //79
+    public boolean exist(char[][] board, String word) {
+        if (board == null || board.length == 0 || board[0].length == 0 || word.length() == 0)
+            return false;
+        for (int i = 0; i < board.length; ++i){
+            for (int j = 0; j < board[0].length; ++j){
+                if (existHelper(board, i, j, word, 0))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean existHelper(char[][] board, int i, int j, String word, int k){
+        if (k == word.length())
+            return true;
+        if (i < 0 || i >= board.length || j < 0 || j >= board[0].length || (board[i][j] & 256) != 0 || board[i][j] != word.charAt(k))
+            return false;
+
+        board[i][j] ^= 256;
+        boolean ex = existHelper(board, i - 1, j, word, k + 1)
+                || existHelper(board, i + 1, j, word, k + 1)
+                || existHelper(board, i, j - 1, word, k + 1)
+                || existHelper(board, i, j + 1, word, k + 1);
+        board[i][j] ^= 256;
+        return ex;
     }
 
     //80
@@ -693,6 +768,33 @@ public class Solution {
             ++r;
         }
         return l + 1;
+    }
+
+    //81
+    public boolean search2(int[] nums, int target) {
+        if (nums == null || nums.length == 0)
+            return false;
+        int l = 0, r = nums.length - 1, m;
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            if (nums[m] == target)
+                return true;
+            else if (nums[m] < nums[r]){
+                if (target > nums[m] && target <= nums[r])
+                    l = m + 1;
+                else
+                    r = m - 1;
+            }
+            else if (nums[m] > nums[r]){
+                if (target >= nums[l] && target < nums[m])
+                    r = m - 1;
+                else
+                    l = m + 1;
+            }
+            else
+                --r;
+        }
+        return false;
     }
 
     //82
@@ -1130,6 +1232,26 @@ public class Solution {
                 }
             }
         }
+    }
+
+    //135
+    public int candy(int[] ratings) {
+        if (ratings == null || ratings.length == 0)
+            return 0;
+        int[] candy = new int[ratings.length];
+
+        Arrays.fill(candy, 1);
+        for (int i = 1; i < candy.length; ++i){
+            if (ratings[i] > ratings[i-1])
+                candy[i] = candy[i-1] + 1;
+        }
+        int res = candy[candy.length - 1];
+        for (int i = candy.length - 2; i >= 0; --i){
+            if (ratings[i] > ratings[i+1] && candy[i] <= candy[i+1])
+                candy[i] = candy[i+1] + 1;
+            res += candy[i];
+        }
+        return res;
     }
 
     //136
