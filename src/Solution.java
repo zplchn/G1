@@ -172,6 +172,28 @@ public class Solution {
         return max;
     }
 
+    //13
+    public int romanToInt(String s) {
+        if (s == null || s.length() == 0)
+            return 0;
+        Map<Character, Integer> hm = new HashMap<>();
+        hm.put('I', 1);
+        hm.put('V', 5);
+        hm.put('X', 10);
+        hm.put('L', 50);
+        hm.put('C', 100);
+        hm.put('D', 500);
+        hm.put('M', 1000);
+        int res = hm.get(s.length() - 1);
+        for (int i = s.length() -2; i>= 0; --i){
+            if (hm.get(s.charAt(i)) < hm.get(s.charAt(i+1)))
+                res -= hm.get(s.charAt(i));
+            else
+                res += hm.get(s.charAt(i));
+        }
+        return res;
+    }
+
     //14
     public String longestCommonPrefix(String[] strs) {
         if (strs == null || strs.length == 0)
@@ -588,6 +610,25 @@ public class Solution {
                 combi.remove(combi.size() - 1);
             }
         }
+    }
+
+    //41
+    public int firstMissingPositive(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 1;
+        for (int i = 0; i < nums.length; ++i){
+            if (i + 1 != nums[i] && nums[i] >= 1 && nums[i] <= nums.length && nums[nums[i] - 1] != nums[i]){
+                int t = nums[nums[i] - 1];
+                nums[nums[i] - 1] = nums[i];
+                nums[i] = t;
+                --i;
+            }
+        }
+        for (int i = 0; i < nums.length; ++i){
+            if (i + 1 != nums[i])
+                return i + 1;
+        }
+        return nums.length + 1; //[1] return 2.
     }
 
     //42
@@ -1519,7 +1560,57 @@ public class Solution {
 
     //131
     public List<List<String>> partition(String s) {
+        List<List<String>> res = new ArrayList<>();
+        if (s == null || s.length() == 0)
+            return res;
+        boolean[][] dp = new boolean[s.length()][s.length()];
 
+        for (int i = s.length() - 1; i >= 0; --i){
+            for (int j = i; j < s.length(); ++j){
+                if (s.charAt(i) == s.charAt(j) && (j - i <= 2 || dp[i+1][j-1]))
+                    dp[i][j] = true;
+            }
+        }
+
+        partitionHelper(s, 0, dp, new ArrayList<String>(), res);
+        return res;
+    }
+
+    private void partitionHelper(String s, int i, boolean[][] dp, List<String> combi, List<List<String>> res){
+        if (i == s.length()){
+            res.add(new ArrayList<>(combi));
+            return;
+        }
+        for (int k = i; k < s.length(); ++k){
+            if (dp[i][k]){
+                combi.add(s.substring(i, k + 1));
+                partitionHelper(s, k + 1, dp, combi, res);
+                combi.remove(combi.size() - 1);
+            }
+        }
+    }
+
+    //132
+    public int minCut(String s) {
+        if (s == null || s.length() == 0)
+            return 0;
+        boolean[][] dp = new boolean[s.length()][s.length()];
+        for (int i = s.length() - 1; i >= 0; --i){
+            for (int j = i; j < s.length(); ++j){
+                if (s.charAt(i) == s.charAt(j) && (j - i <= 2 || dp[i+1][j-1]))
+                    dp[i][j] = true;
+            }
+        }
+        int[] dp1 = new int[s.length() + 1];
+        Arrays.fill(dp1, Integer.MAX_VALUE);
+        dp1[0] = 0;
+        for (int i = 0; i < s.length(); ++i){
+            for (int j = i; j < s.length(); ++j){
+                if (dp[i][j])
+                    dp1[j+1] = Math.min(dp1[j+1], dp1[i] + 1);
+            }
+        }
+        return dp1[dp1.length - 1] - 1;
     }
 
     //135
@@ -2527,6 +2618,26 @@ public class Solution {
 //        return res;
 //
 //    }
+
+    //268
+    public int missingNumber(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        for (int i = 0; i < nums.length; ++i){
+            if (i != nums[i] && nums[i] < nums.length){ //since it's distinct, no need for nums[nums[i]] != nums[i] but attention
+                                                        //nums[i] itself can out limit [1]
+                int t = nums[nums[i]];
+                nums[nums[i]] = nums[i];
+                nums[i] = t;
+                --i;
+            }
+        }
+        for (int i = 0; i < nums.length; ++i){
+            if (i != nums[i])
+                return i;
+        }
+        return nums.length;
+    }
 
     //270
     private int closetValue;
