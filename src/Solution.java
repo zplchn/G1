@@ -44,6 +44,10 @@ public class Solution {
         double x = 0;
         int v = 3;
         x += v;
+        int n = -3;
+        n %= 10;
+        System.out.println(n);
+        System.out.println("3".substring(0, 0)); //empty string
         System.out.println(x);
         String s = "12,3,#,5,#,";
         String[] tokens = s.split(",");
@@ -97,6 +101,92 @@ public class Solution {
         }
         pre.next = null;
         return dummy.next;
+    }
+
+    //5
+    public String longestPalindrome(String s) {
+        if (s == null || s.length() == 0)
+            return "";
+        boolean [][] dp = new boolean[s.length()][s.length()];
+        String res = "";
+        int max = 0, l = 0, r = 0;
+        for (int i = s.length() - 1; i >= 0; --i){
+            for (int j = i; j < s.length(); ++j){
+                if (s.charAt(i) == s.charAt(j) && (j - i <= 2 || dp[i+1][j-1])){
+                    dp[i][j] = true;
+                    if (j - i + 1 > max){
+                        l = i;
+                        r = j + 1;
+                        max = j - i + 1;
+                    }
+                }
+            }
+        }
+        return s.substring(l, r);
+    }
+
+    //7
+    public int reverse(int x) {
+        long res = 0;
+        while (x != 0){
+            res = res * 10 + x % 10; //note -3 % 10 = -3
+            x /= 10;
+            if (res > Integer.MAX_VALUE || res < Integer.MIN_VALUE)
+                return 0;
+        }
+        return (int)res;
+    }
+
+    //9
+    public boolean isPalindrome(int x) {
+        if (x < 0)
+            return false;
+        int div = 1;
+        while (x / div >= 10)
+            div *= 10;
+        while (x != 0){
+            if (x / div != x % 10)
+                return false;
+            x = x % div / 10;
+            div /= 100;
+        }
+        return true;
+    }
+
+    //11
+    public int maxArea(int[] height) {
+        if (height == null || height.length < 2)
+            return 0;
+        int l = 0, r = height.length - 1, max = 0;
+        while (l < r){
+            int min = Math.min(height[l], height[r]);
+            if (min == height[l]){
+                max = Math.max(max, min * (r - l));
+                ++l;
+            }
+            else if (min == height[r]){
+                max = Math.max(max, min * (r - l));
+                --r;
+            }
+        }
+        return max;
+    }
+
+    //14
+    public String longestCommonPrefix(String[] strs) {
+        if (strs == null || strs.length == 0)
+            return "";
+        String pre = strs[0];
+        int min = pre.length();
+        for (int i = 1; i < strs.length; ++i){
+            int j = 0;
+            for (; j < Math.min(min, strs[i].length()); ++j){
+                if (pre.charAt(j) != strs[i].charAt(j))
+                    break;
+            }
+            min = Math.min(min, j);
+        }
+        return pre.substring(0, min);
     }
 
     //15
@@ -242,6 +332,28 @@ public class Solution {
         return st.isEmpty();
     }
 
+    //21
+    public ListNode mergeTwoLists(ListNode l1, ListNode l2) {
+        if (l1 == null)
+            return l2;
+        if (l2 == null)
+            return l1;
+        ListNode dummy = new ListNode(0), pre = dummy;
+        while (l1 != null && l2 != null){
+            if (l1.val < l2.val){
+                pre.next = l1;
+                l1 = l1.next;
+            }
+            else {
+                pre.next = l2;
+                l2 = l2.next;
+            }
+            pre = pre.next;
+        }
+        pre.next = l1 != null ? l1 : l2;
+        return dummy.next;
+    }
+
     //22
     public List<String> generateParenthesis(int n) {
         List<String> res = new ArrayList<>();
@@ -301,6 +413,19 @@ public class Solution {
         return l + 1;
     }
 
+    //27
+    public int removeElement(int[] nums, int val) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int l = 0, r = 0;
+        while (r < nums.length){
+            if (nums[r] != val)
+                nums[l++] = nums[r];
+            ++r;
+        }
+        return l;
+    }
+
     //31
     public void nextPermutation(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -354,6 +479,63 @@ public class Solution {
             }
         }
         return -1;
+    }
+
+    //35
+    public int searchInsert(int[] nums, int target) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int l = 0, r = nums.length - 1, m;
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            if (target > nums[m])
+                l = m + 1;
+            else if (target < nums[m])
+                r = m - 1;
+            else
+                return m;
+        }
+        return l;
+    }
+
+    //36
+    public boolean isValidSudoku(char[][] board) {
+        if (board == null || board.length != 9 || board[0].length != 9)
+            return false;
+
+        for (int i = 0; i < board.length; ++i){
+            Set<Character> hs = new HashSet<>();
+            for (int j = 0; j < board[0].length; ++j){
+                if (board[i][j] != '.'){
+                    if (hs.contains(board[i][j]))
+                        return false;
+                    hs.add(board[i][j]);
+                }
+            }
+        }
+        for (int j = 0; j < board[0].length; ++j){
+            Set<Character> hs = new HashSet<>();
+            for (int i = 0; i < board.length; ++i){
+                if (board[i][j] != '.'){
+                    if (hs.contains(board[i][j]))
+                        return false;
+                    hs.add(board[i][j]);
+                }
+            }
+        }
+        for (int m = 0; m < 9; ++m){
+            Set<Character> hs = new HashSet<>();
+            for (int i = m / 3 * 3; i < m / 3 * 3 + 3; ++i){
+                for (int j = m % 3 * 3; j < m % 3 * 3 + 3; ++j){
+                    if (board[i][j] != '.'){
+                        if (hs.contains(board[i][j]))
+                            return false;
+                        hs.add(board[i][j]);
+                    }
+                }
+            }
+        }
+        return true;
     }
 
     //39
@@ -510,6 +692,18 @@ public class Solution {
              return t * t / x;
         else
             return t * t * x;
+    }
+
+    //53
+    public int maxSubArray(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int lmax = nums[0], max = nums[0];
+        for (int i = 1; i < nums.length; ++i){
+            lmax = Math.max(lmax + nums[i], nums[i]);
+            max = Math.max(max, lmax);
+        }
+        return max;
     }
 
     //56
@@ -680,6 +874,35 @@ public class Solution {
             sb.insert(0, "/" + st.pop());
         }
         return sb.toString();
+    }
+
+    //74
+    public boolean searchMatrix(int[][] matrix, int target) {
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0)
+            return false;
+        int l = 0, r = matrix.length - 1, m;
+        while (l < r){
+            m = l + ((r - l) >> 1);
+            if (target > matrix[m][matrix[0].length - 1])
+                l = m + 1;
+            else if (target < matrix[m][matrix[0].length - 1])
+                r = m;
+            else
+                return true;
+        }
+        int row = l;
+        r = matrix[row].length - 1;
+        l = 0;
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            if (target > matrix[row][m])
+                l = m + 1;
+            else if (target < matrix[row][m])
+                r = m - 1;
+            else
+                return true;
+        }
+        return false;
     }
 
     //75
@@ -1102,6 +1325,66 @@ public class Solution {
         combi.remove(combi.size() - 1);
     }
 
+    //121
+    public int maxProfit(int[] prices) {
+        if (prices == null || prices.length < 2)
+            return 0;
+        int min = prices[0], max = 0;
+        for (int i = 1; i < prices.length; ++i){
+            max = Math.max(max, prices[i] - min);
+            min = Math.min(min, prices[i]);
+        }
+        return max;
+    }
+
+    //116
+    public void connect(TreeLinkNode root) {
+        if (root == null || (root.left == null && root.right == null))
+            return;
+
+        root.left.next = root.right;
+        root.right.next = root.next!= null? root.next.left: null;
+        connect(root.left);
+        connect(root.right);
+    }
+
+    //117
+    class TreeLinkNode {
+        int val;
+        TreeLinkNode left, right, next;
+        public TreeLinkNode(int x){val = x;}
+    }
+
+    public void connect2(TreeLinkNode root) {
+        if (root == null)
+            return;
+        //find next valid
+        TreeLinkNode nv = root.next;
+        while (nv != null && nv.left == null && nv.right == null){
+            nv = nv.next;
+        }
+        if (nv != null)
+            nv = nv.left != null? nv.left: nv.right;
+        if (root.right != null)
+            root.right.next = nv;
+        if (root.left != null)
+            root.left.next = root.right != null? root.right: nv;
+        connect(root.right);
+        connect(root.left);
+    }
+
+    //122
+    public int maxProfit2(int[] prices) {
+        if (prices == null || prices.length < 2)
+            return 0;
+        int res = 0;
+        for (int i = 1; i < prices.length; ++i){
+            if (prices[i] > prices[i-1])
+                res += prices[i] - prices[i-1];
+        }
+        return res;
+    }
+
     //124
     private int maxPath;
     public int maxPathSum(TreeNode root) {
@@ -1234,6 +1517,11 @@ public class Solution {
         }
     }
 
+    //131
+    public List<List<String>> partition(String s) {
+
+    }
+
     //135
     public int candy(int[] ratings) {
         if (ratings == null || ratings.length == 0)
@@ -1262,6 +1550,39 @@ public class Solution {
         for (int i : nums)
             res ^= i;
         return res;
+    }
+
+    //138
+    class RandomListNode{
+        int label;
+        RandomListNode next, random;
+        RandomListNode(int val){label = val;}
+    }
+
+    public RandomListNode copyRandomList(RandomListNode head) {
+        if (head == null)
+            return head;
+        RandomListNode cur = head;
+        while (cur != null){
+            RandomListNode next = cur.next;
+            cur.next = new RandomListNode(cur.label);
+            cur.next.next = next;
+            cur = cur.next.next;
+        }
+        cur = head;
+        while (cur != null){
+            cur.next.random = cur.random == null? null : cur.random.next; //random could be null!!!
+            cur = cur.next.next;
+        }
+        RandomListNode dummy = new RandomListNode(0), pre = dummy;
+        cur = head;
+        while (cur != null){
+            pre.next = cur.next;
+            pre = pre.next;
+            cur.next = cur.next.next;
+            cur = cur.next;
+        }
+        return dummy.next;
     }
 
     //139
@@ -1376,6 +1697,20 @@ public class Solution {
             }
         }
         return st.pop();
+    }
+
+    //152
+    public int maxProduct(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int min = nums[0], max = nums[0], res = nums[0];
+        for (int i = 1; i < nums.length; ++i){
+            int t = max;
+            max = Math.max(nums[i], Math.max(nums[i] * max, nums[i] * min));
+            min = Math.min(nums[i], Math.min(nums[i] * t, nums[i] * min ));
+            res = Math.max(res, max);
+        }
+        return res;
     }
 
     //155
@@ -1539,6 +1874,17 @@ public class Solution {
         }
     }
 
+    //171
+    public int titleToNumber(String s) {
+        if (s == null || s.length() == 0)
+            return 0;
+        int res = 0;
+        for (int i = 0; i < s.length(); ++i){
+            res = res * 26 + s.charAt(i) - 'A' + 1;
+        }
+        return res;
+    }
+
     //173
     public class BSTIterator {
         Deque<TreeNode> stack;
@@ -1676,6 +2022,65 @@ public class Solution {
                 tr = tr.children[off];
             }
             return true;
+        }
+    }
+
+    //209
+    public int minSubArrayLen(int s, int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int l = 0, r= 0, sum = 0, min = nums.length +1;
+
+        while (r < nums.length){
+            sum += nums[r];
+            while (l <= r && sum >= s){
+                    min = Math.min(min, r - l + 1);
+                    sum -= nums[l++]; //all the way until sum < s cauze when >= s cannot be even shorter
+            }
+            ++r; //only add here after try shrinking the left!
+        }
+        return min > nums.length ? 0 : min;
+    }
+
+    //211
+    public class WordDictionary {
+        TrieNode root = new TrieNode();
+
+        // Adds a word into the data structure.
+        public void addWord(String word) {
+            if (word == null)
+                return;
+            TrieNode tn = root;
+            for (int i = 0; i < word.length(); ++i){
+                char c = word.charAt(i);
+                if (tn.children[c - 'a'] == null)
+                    tn.children[c - 'a'] = new TrieNode();
+                tn = tn.children[c - 'a'];
+            }
+            tn.isWord = true;
+        }
+
+        // Returns if the word is in the data structure. A word could
+        // contain the dot character '.' to represent any one letter.
+        public boolean search(String word) {
+            if (word == null)
+                return false;
+            return searchHelper(word, 0, root);
+        }
+
+        private boolean searchHelper(String word, int i, TrieNode root){
+            if (root == null)
+                return false;
+            if (i == word.length())
+                return root.isWord;
+            char c = word.charAt(i);
+            if (c != '.')
+                return searchHelper(word, i + 1, root.children[c - 'a']);
+            for (TrieNode tn : root.children){
+                if (tn != null && searchHelper(word, i + 1, tn))
+                    return true;
+            }
+            return false;
         }
     }
 
@@ -2834,10 +3239,10 @@ public class Solution {
     }
 
     //371
-    public int getSum(int a, int b) {
-
-
-    }
+//    public int getSum(int a, int b) {
+//
+//
+//    }
 
     //379
     public class PhoneDirectory {
@@ -2869,6 +3274,46 @@ public class Solution {
         /** Recycle or release a number. */
         public void release(int number) {
             bs.clear(number);
+        }
+    }
+
+    //380
+    public class RandomizedSet {
+        List<Integer> list;
+        Map<Integer, Integer> hm;
+
+        /** Initialize your data structure here. */
+        public RandomizedSet() {
+            list = new ArrayList<>();
+            hm = new HashMap<>();
+        }
+
+        /** Inserts a value to the set. Returns true if the set did not already contain the specified element. */
+        public boolean insert(int val) {
+            if (hm.containsKey(val))
+                return false;
+            list.add(val);
+            hm.put(val, list.size() - 1);
+            return true;
+        }
+
+        /** Removes a value from the set. Returns true if the set contained the specified element. */
+        public boolean remove(int val) {
+            if (!hm.containsKey(val))
+                return false;
+            int ind = hm.get(val);
+            int last = list.get(list.size() - 1);
+            list.set(ind, last);
+            hm.put(last, ind);
+            list.remove(list.size() - 1);
+            hm.remove(val);
+            list.forEach(System.out::println);
+            return true;
+        }
+
+        /** Get a random element from the set. */
+        public int getRandom() {
+            return list.get(new Random().nextInt(list.size()));
         }
     }
 
