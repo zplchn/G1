@@ -890,6 +890,19 @@ public class Solution {
         return sb.reverse().toString();
     }
 
+    //70
+    public int climbStairs(int n) {
+        if (n < 0)
+            return 0;
+        int n0 = 1, n1 = 1, nn = 1;
+        while (n-- >= 2){
+            nn = n0 + n1;
+            n0 = n1;
+            n1 = nn;
+        }
+        return nn;
+    }
+
     //71
     public String simplifyPath(String path) {
         if (path == null || path.length() == 0)
@@ -915,6 +928,49 @@ public class Solution {
             sb.insert(0, "/" + st.pop());
         }
         return sb.toString();
+    }
+
+    //73
+    public void setZeroes(int[][] matrix) {
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0)
+            return;
+        boolean firstRow = false, firstCol = false;
+        for (int j = 0; j < matrix[0].length; ++j) {
+            if (matrix[0][j] == 0) {
+                firstRow = true;
+                break;
+            }
+        }
+        for (int i = 0; i < matrix.length; ++i){
+            if (matrix[i][0] == 0) {
+                firstCol = true;
+                break;
+            }
+        }
+        for (int i = 0; i < matrix.length; ++i){
+            for (int j = 0; j < matrix[0].length; ++j){
+                if (matrix[i][j] == 0){
+                    matrix[i][0] = 0;
+                    matrix[0][j] = 0;
+                }
+            }
+        }
+        for (int i = 1; i < matrix.length; ++i){
+            for (int j = 1; j < matrix[0].length; ++j){
+                if (matrix[i][0] == 0 || matrix[0][j] == 0)
+                    matrix[i][j] = 0;
+            }
+        }
+        if (firstRow){
+            for (int j = 0; j < matrix[0].length; ++j) {
+                matrix[0][j] = 0;
+            }
+        }
+        if (firstCol){
+            for (int i = 0; i < matrix.length; ++i) {
+                matrix[i][0] = 0;
+            }
+        }
     }
 
     //74
@@ -1092,6 +1148,17 @@ public class Solution {
                 cur = cur.next;
         }
         return head;
+    }
+
+    //89
+    public List<Integer> grayCode(int n) {
+        List<Integer> res = new ArrayList<>();
+        if (n < 0)
+            return res;
+        for (int i = 0; i < (1<<n); ++i){
+            res.add(i ^ (i >> 1));
+        }
+        return res;
     }
 
     //90
@@ -2659,6 +2726,38 @@ public class Solution {
             closetValueHelper(root.right, target, diff);
         else
             closetValueHelper(root.left, target, diff);
+    }
+
+    //273
+    public String numberToWords(int num) {
+        if (num == 0)
+            return "Zero";
+        String res = "";
+        final String [] thousands = {"", "Thousand", "Million", "Billion"};
+        int i = 0;
+        while (num > 0){
+            if (num % 1000 > 0)
+                res = numberToWordsHelper(num % 1000) + " " + thousands[i] + " " + res;
+            num /= 1000;
+            ++i;
+        }
+        return res.trim();
+    }
+
+    private final String[] less20 = {"", "One", "Two", "Three", "Four", "Five",
+            "Six", "Seven", "Eight", "Nine", "Ten",
+            "Eleven", "Twelve", "Thirteen", "Fourteen", "Fifteen",
+            "Sixteen", "Seventeen", "Eighteen", "Nineteen", "Twenty"};
+    private final String[] tens = {"", "", "Twenty", "Thirty", "Forty", "Fifty", "Sixty", "Seventy", "Eighty", "Ninety"};
+    private String numberToWordsHelper(int num){
+        if (num <= 20){
+            return less20[num];
+        }
+        else if (num < 100){
+            return tens[num / 10] + (num % 10 == 0 ? "": " " + less20[num % 10]);
+        }
+        else
+            return less20[num / 100] + " Hundred" + (num % 100 == 0? "": " " + numberToWordsHelper(num % 100));
     }
 
     //277
