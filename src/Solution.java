@@ -503,6 +503,36 @@ public class Solution {
         return -1;
     }
 
+    //34
+    public int[] searchRange(int[] nums, int target) {
+        int[] res = {-1, -1};
+        if (nums == null || nums.length == 0)
+            return res;
+        int l = 0, r = nums.length - 1, m;
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            if (nums[m] <= target)
+                l = m + 1;
+            else
+                r = m - 1;
+        }
+        int rr = r;
+        l = 0;
+        r = nums.length - 1;
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            if (nums[m] >= target)
+                r = m - 1;
+            else
+                l = m + 1;
+        }
+        if (l > rr)
+            return res;
+        res[0] = l;
+        res[1] = rr;
+        return res;
+    }
+
     //35
     public int searchInsert(int[] nums, int target) {
         if (nums == null || nums.length == 0)
@@ -651,6 +681,21 @@ public class Solution {
         return res;
     }
 
+    //45
+    public int jump(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int lastReach = 0, max = 0, step = 0;
+        for (int i = 0; i <= max && i < nums.length; ++i){
+            if (i > lastReach){
+                ++step;
+                lastReach = max;
+            }
+            max = Math.max(max, i + nums[i]); //dont stop in teh middle very hard to follow
+        }
+        return max >= nums.length - 1? step: -1;
+    }
+
     //46
     public List<List<Integer>> permute(int[] nums) {
         List<List<Integer>> res = new ArrayList<>();
@@ -747,6 +792,21 @@ public class Solution {
         return max;
     }
 
+    //55
+    public boolean canJump(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return true;
+        int max = 0, lastReach = 0;
+        for (int i = 0; i <= max && i < nums.length; ++i){
+            if (i > lastReach)
+                lastReach = max;
+            max = Math.max(max, i + nums[i]);
+            if (max >= nums.length - 1)
+                return true;
+        }
+        return false;
+    }
+
     //56
     public List<Interval> merge(List<Interval> intervals) {
         List<Interval> res = new ArrayList<>();
@@ -781,6 +841,17 @@ public class Solution {
         while (i < intervals.size())
             res.add(intervals.get(i++));
         return res;
+    }
+
+    //58
+    public int lengthOfLastWord(String s) {
+        if (s == null)
+            return 0;
+        s = s.trim();
+        if (s.length() == 0)
+            return 0;
+        String[] tokens = s.split("\\s+");
+        return tokens[tokens.length - 1].length();
     }
 
     //60
@@ -1150,6 +1221,24 @@ public class Solution {
         return head;
     }
 
+    //88
+    public void merge(int[] nums1, int m, int[] nums2, int n) {
+        if (nums1 == null || nums2 == null || m < 0 || n < 0) //m == 0 is ok as long as n has data
+            return;
+        int im = m - 1, in = n - 1, i = m + n - 1;
+        while (im >= 0 || in >= 0){
+            if (im >= 0 && in >= 0){
+                nums1[i--] = nums1[im] > nums2[in]? nums1[im--]: nums2[in--];
+            }
+            else if (in >= 0){
+                nums1[i--] = nums2[in--];
+            }
+            else
+                break;
+        }
+    }
+
+
     //89
     public List<Integer> grayCode(int n) {
         List<Integer> res = new ArrayList<>();
@@ -1199,6 +1288,48 @@ public class Solution {
             }
         }
         return res;
+    }
+
+    //95
+    public List<TreeNode> generateTrees(int n) {
+        if (n < 1)
+            return new ArrayList<TreeNode>();
+        return generateTrees(1, n);
+    }
+
+    private List<TreeNode> generateTrees(int l, int r){
+        List<TreeNode> res = new ArrayList<>();
+        if (l > r){
+            res.add(null);
+            return res;
+        }
+        for (int i = l; i <= r; ++i){
+            List<TreeNode> ll = generateTrees(l, i - 1);
+            List<TreeNode> rl = generateTrees(i + 1, r);
+
+            for (int j = 0; j < ll.size(); ++j){
+                for (int k = 0; k < rl.size(); ++k){
+                    TreeNode root = new TreeNode(i); //for every combination, create new root and pick left/right
+                    root.left = ll.get(j);
+                    root.right = rl.get(k);
+                    res.add(root);
+                }
+            }
+        }
+        return res;
+    }
+
+    //96
+    public int numTrees(int n) {
+        if (n < 1)
+            return 0;
+        int[] dp = new int[n + 1];
+        dp[0] = dp[1] = 1;
+        for (int i = 2; i <= n; ++i){
+            for (int l = 0; l < i; ++l)
+                dp[i] += dp[l]*dp[i-1-l];
+        }
+        return dp[n];
     }
 
     //98
@@ -1871,6 +2002,38 @@ public class Solution {
         return res;
     }
 
+    //153
+    public int findMin(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return -1;
+        int l = 0, r = nums.length - 1, m;
+        while (l < r){
+            m = l + ((r - l) >> 1);
+            if (nums[m] > nums[r])
+                l = m + 1;
+            else
+                r = m;
+        }
+        return nums[l];
+    }
+
+    //154
+    public int findMin2(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return -1;
+        int l = 0, r = nums.length - 1, m;
+        while (l < r){
+            m = l + ((r - l) >> 1);
+            if (nums[m] > nums[r])
+                l = m + 1;
+            else if (nums[m] < nums[r])
+                r = m;
+            else
+                --r;
+        }
+        return nums[l];
+    }
+
     //155
     public class MinStack {
         Deque<Integer> st;
@@ -1933,6 +2096,27 @@ public class Solution {
         return ha;
     }
 
+    //161
+    public boolean isOneEditDistance(String s, String t) {
+        if (s == null || t == null)
+            return false;
+        if (s.length() > t.length())
+            return isOneEditDistance(t, s);
+        int diff = t.length() - s.length();
+        if (diff > 1)
+            return false;
+        int i = 0;
+        while (i < s.length() && s.charAt(i) == t.charAt(i))
+            ++i;
+        if (i == s.length())
+            return diff == 1;
+        if (diff == 0)
+            ++i;
+        while (i < s.length() && s.charAt(i) == t.charAt(i + diff))
+            ++i;
+        return i == s.length();
+    }
+
     //162
     public int findPeakElement(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -1973,6 +2157,21 @@ public class Solution {
             return Integer.toString(l);
         else
             return l + "->" + r;
+    }
+
+    //165
+    public int compareVersion(String version1, String version2) {
+        if (version1 == null || version2 == null)
+            return 0;
+        String[] v1 = version1.split("\\.");
+        String[] v2 = version2.split("\\.");
+
+        for (int i = 0; i < Math.max(v1.length, v2.length); ++i){
+            int diff = (i < v1.length? Integer.parseInt(v1[i]): 0) - (i < v2.length? Integer.parseInt(v2[i]): 0);
+            if (diff != 0)
+                return diff > 0? 1: -1;
+        }
+        return 0;
     }
 
     //167
@@ -2069,6 +2268,22 @@ public class Solution {
             pushLeft(tn.right);
             return tn.val;
         }
+    }
+
+    //179
+    public String largestNumber(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return "";
+        String[] strs = new String[nums.length];
+        for (int i = 0; i < nums.length; ++i)
+            strs[i] = String.valueOf(nums[i]);
+        Arrays.sort(strs, (s1, s2)-> (s2 + s1).compareTo(s1 + s2));
+        if (strs[0].equals("0")) // prevent nums have all 0
+            return "0";
+        String res = "";
+        for (String s : strs)
+            res += s;
+        return res;
     }
 
     //199
@@ -2343,6 +2558,27 @@ public class Solution {
         return false;
     }
 
+    //222
+    public int countNodes(TreeNode root) {
+        if (root == null)
+            return 0;
+        int lh = 1, rh = 1;
+        TreeNode cur = root;
+        while (cur.left != null){
+            cur = cur.left;
+            ++lh;
+        }
+        cur = root;
+        while (cur.right != null){
+            cur = cur.right;
+            ++rh;
+        }
+        if (lh == rh)
+            return (1 << lh) - 1;
+        else
+            return countNodes(root.left) + countNodes(root.right) + 1;
+    }
+
     //226
     public TreeNode invertTree(TreeNode root) {
         if (root == null)
@@ -2433,6 +2669,14 @@ public class Solution {
         if (tl != null && tr != null)
             return root;
         return tl != null? tl : tr;
+    }
+
+    //237
+    public void deleteNode(ListNode node) {
+        if (node == null)
+            return;
+        node.val = node.next.val;
+        node.next = node.next.next;
     }
 
     //242
@@ -2780,6 +3024,23 @@ public class Solution {
         return l;
     }
 
+    //278
+    boolean isBadVersion(int version){return true;}
+
+    public int firstBadVersion(int n) {
+        if (n < 1)
+            return 0;
+        int l = 1, r = n, m;
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            if (isBadVersion(m))
+                r = m - 1;
+            else
+                l = m + 1;
+        }
+        return l;
+    }
+
     //279
     public int numSquares(int n) {
         if (n < 1)
@@ -3093,6 +3354,45 @@ public class Solution {
         }
         longestConsecutiveHelper(root.left, root, k);
         longestConsecutiveHelper(root.right, root, k);
+    }
+
+    //303
+    public class NumArray {
+        private int[] dp; //sum of 0 - i
+
+        public NumArray(int[] nums) {
+            if (nums == null)
+                return;
+            dp = Arrays.copyOf(nums, nums.length); //Arrays.copyOf(T [], int new_len) note must supply new length!!
+            for (int i = 1; i < dp.length; ++i)
+                dp[i] += dp[i-1];
+        }
+
+        public int sumRange(int i, int j) {
+            return i == 0? dp[j]: dp[j] - dp[i-1];
+        }
+    }
+
+    //304
+    public class NumMatrix {
+        private int[][] dp;
+
+        public NumMatrix(int[][] matrix) {
+            if (matrix == null || matrix.length == 0 || matrix[0].length == 0)
+                return; //2d array the inner array can be null! so has to check at all times!!!
+            dp = new int[matrix.length+1][matrix[0].length+1];
+            for (int i = 1; i < dp.length; ++i){
+                int sum = 0;
+                for (int j = 1; j < dp[0].length; ++j){
+                    dp[i][j] = dp[i-1][j] + sum + matrix[i-1][j-1];
+                    sum += matrix[i-1][j-1];
+                }
+            }
+        }
+
+        public int sumRegion(int row1, int col1, int row2, int col2) {
+            return dp[row2+1][col2+1] - dp[row2+1][col1] - dp[row1][col2+1] + dp[row1][col1];
+        }
     }
 
     //314
