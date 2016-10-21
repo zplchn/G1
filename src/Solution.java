@@ -1988,6 +1988,23 @@ public class Solution {
         return st.pop();
     }
 
+    //151
+    public String reverseWords(String s) {
+        if (s == null)
+            return s;
+        s = s.trim();
+        if (s.length() == 0)
+            return s;
+        String[] tokens = s.split("\\s+");
+        StringBuilder sb = new StringBuilder();
+        sb.append(tokens[tokens.length - 1]);
+        for (int i = tokens.length - 2; i >= 0; --i) { //java array does not have reverse(). Collections has.
+            sb.append(" ");
+            sb.append(tokens[i]);
+        }
+        return sb.toString();
+    }
+
     //152
     public int maxProduct(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -2283,6 +2300,43 @@ public class Solution {
         String res = "";
         for (String s : strs)
             res += s;
+        return res;
+    }
+
+    //186
+    public void reverseWords(char[] s) {
+        if (s == null || s.length == 0)
+            return;
+        reverse(s, 0, s.length - 1);
+        int l = 0, r = 0;
+        while (r < s.length){
+            if (Character.isSpaceChar(s[r])){ //Character.isSpaceChar(char c) is the new API
+                reverse(s, l, r - 1);
+                l = r + 1;
+            }
+            ++r;
+        }
+        reverse(s, l, r - 1);
+    }
+
+    private void reverse(char[] s, int l, int r){
+        while (l < r)
+            swap(s, l++, r--);
+    }
+
+    private void swap(char[] s, int l, int r){
+        char t = s[l];
+        s[l] = s[r];
+        s[r] = t;
+    }
+
+    //190
+    public int reverseBits(int n) {
+        int res = 0;
+        for (int i = 0; i < 32; ++i){
+            res = (res << 1) | (n & 1);
+            n >>>= 1;
+        }
         return res;
     }
 
@@ -3562,6 +3616,37 @@ public class Solution {
         }
     }
 
+    //344
+    public String reverseString(String s) {
+        if (s == null || s.length() == 0)
+            return s;
+        return new StringBuilder(s).reverse().toString();
+    }
+
+    //345
+    public String reverseVowels(String s) {
+        if (s == null || s.length() <= 1)
+            return s;
+        String check = "aeiouAEIOU";
+        char[] sc = s.toCharArray();
+        int l = 0, r = sc.length - 1;
+
+        while (l < r){
+            if (check.indexOf(sc[l]) == -1)
+                ++l;
+            else if (check.indexOf(sc[r]) == -1)
+                --r;
+            else {
+                char x = sc[l];
+                sc[l] = sc[r];
+                sc[r] = x;
+                ++l;
+                --r;
+            }
+        }
+        return new String(sc);
+    }
+
     //346
     public class MovingAverage {
         private Queue<Integer> queue;
@@ -3826,6 +3911,22 @@ public class Solution {
             return list.get(new Random().nextInt(list.size()));
         }
     }
+
+    //387
+    public int firstUniqChar(String s) {
+        if (s == null || s.length() == 0)
+            return -1;
+        Map<Character, Integer> hm = new HashMap<>();
+        for (int i = 0; i < s.length(); ++i){
+            hm.put(s.charAt(i), hm.containsKey(s.charAt(i))? 2: 1);
+        }
+        for (int i = 0; i < s.length(); ++i){
+            if (hm.get(s.charAt(i)) == 1)
+                return i;
+        }
+        return -1;
+    }
+
 
     //389
     public char findTheDifference(String s, String t) {
