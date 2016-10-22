@@ -323,6 +323,25 @@ public class Solution {
         return res;
     }
 
+    //19
+    public ListNode removeNthFromEnd(ListNode head, int n) {
+        if (head == null || n < 1)
+            return head;
+        ListNode dummy = new ListNode(0), l, r;
+        l = r = dummy;
+        dummy.next = head;
+        while (n-- > 0 && r != null)
+            r = r.next;
+        if (r == null)
+            return head;
+        while (r != null && r.next != null){
+            l = l.next;
+            r = r.next;
+        }
+        l.next = l.next.next;
+        return dummy.next;
+    }
+
     //20
     public boolean isValid(String s) {
         if (s == null || s.length() == 0)
@@ -1141,6 +1160,11 @@ public class Solution {
         }
     }
 
+    //77
+    public List<List<Integer>> combine(int n, int k) {
+
+    }
+
     //78
     public List<List<Integer>> subsets(int[] nums) {
         List<List<Integer>> res = new ArrayList<>();
@@ -1265,6 +1289,29 @@ public class Solution {
                 cur = cur.next;
         }
         return head;
+    }
+
+    //86
+    public ListNode partition(ListNode head, int x) {
+        if (head == null)
+            return head;
+        ListNode less = new ListNode(0), lh = less;
+        ListNode great = new ListNode(0), gh = great, cur = head;
+
+        while (cur != null){
+            if (cur.val < x){
+                lh.next = cur;
+                lh = lh.next;
+            }
+            else {
+                gh.next = cur;
+                gh = gh.next;
+            }
+            cur = cur.next;
+        }
+        gh.next = null;
+        lh.next = great.next;
+        return less.next;
     }
 
     //88
@@ -1911,12 +1958,27 @@ public class Solution {
     }
 
     //136
-    public int singleNumber(int[] nums) {
+    public int singleNumber1(int[] nums) {
         if (nums == null || nums.length == 0)
             return 0;
         int res = 0;
         for (int i : nums)
             res ^= i;
+        return res;
+    }
+
+    //137
+    public int singleNumber(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int res = 0;
+        for (int i = 0; i < 32; ++i){
+            int cnt = 0;
+            for (int j : nums){
+                cnt += ((j >>> i) & 1);
+            }
+            res |= ((cnt % 3) << i);
+        }
         return res;
     }
 
@@ -2745,6 +2807,44 @@ public class Solution {
             return countNodes(root.left) + countNodes(root.right) + 1;
     }
 
+    //225
+    class MyStack {
+        Queue<Integer> q1 = new LinkedList<>();
+        Queue<Integer> q2 = new LinkedList<>();
+
+        // Push element x onto stack.
+        public void push(int x) {
+            q1.offer(x);
+        }
+
+        // Removes the element on top of the stack.
+        public void pop() {
+            while (q1.size() != 1)
+                q2.offer(q1.poll());
+            q1.poll();
+            Queue<Integer> t = q1;
+            q1 = q2;
+            q2 = t;
+        }
+
+        // Get the top element.
+        public int top() {
+            while (q1.size() != 1)
+                q2.offer(q1.poll());
+            int x = q1.poll();
+            q2.offer(x);
+            Queue<Integer> t = q1;
+            q1 = q2;
+            q2 = t;
+            return x;
+        }
+
+        // Return whether the stack is empty.
+        public boolean empty() {
+            return q1.isEmpty();
+        }
+    }
+
     //226
     public TreeNode invertTree(TreeNode root) {
         if (root == null)
@@ -2809,6 +2909,44 @@ public class Solution {
         return n > 0 && (n & (n - 1)) == 0;
     }
 
+    //232
+    class MyQueue {
+        Deque<Integer> s1 = new ArrayDeque<>();
+        Deque<Integer> s2 = new ArrayDeque<>();
+
+        // Push element x to the back of queue.
+        public void push(int x) {
+            s1.push(x);
+        }
+
+        // Removes the element from in front of queue.
+        public void pop() {
+            if (!s2.isEmpty())
+                s2.pop();
+            else {
+                while (s1.size() != 1)
+                    s2.push(s1.pop());
+                s1.pop();
+            }
+        }
+
+        // Get the front element.
+        public int peek() {
+            if (!s2.isEmpty())
+                return s2.peek();
+            else {
+                while (!s1.isEmpty())
+                    s2.push(s1.pop());
+                return s2.peek();
+            }
+        }
+
+        // Return whether the queue is empty.
+        public boolean empty() {
+            return s1.isEmpty() && s2.isEmpty();
+        }
+    }
+
     //235
     public TreeNode lowestCommonAncestorBST(TreeNode root, TreeNode p, TreeNode q) {
         if (root == null || p == null || q == null)
@@ -2858,6 +2996,82 @@ public class Solution {
         Arrays.sort(ss);
         Arrays.sort(ts);
         return new String(ss).equals(new String(ts));
+    }
+
+    //243
+    public int shortestDistance(String[] words, String word1, String word2) {
+        if (words == null || word1 == null || word2 == null)
+            return -1;
+        int i1 = -1, i2 = -1, min = words.length;
+        for (int i = 0; i < words.length; ++i){
+            if (words[i].equals(word1)){
+                if (i2 != -1)
+                    min = Math.min(min, i - i2);
+                i1 = i;
+            }
+            else if (words[i].equals(word2)){
+                if (i1 != -1)
+                    min = Math.min(min, i - i1);
+                i2 = i;
+            }
+        }
+        return min;
+    }
+
+    //244
+    public class WordDistance {
+        private Map<String, List<Integer>> hm;
+
+        public WordDistance(String[] words) {
+            if (words == null || words.length == 0)
+                return;
+            hm = new HashMap<>(); //dont forget to create this !!!
+            for (int i = 0; i < words.length; ++i){
+                if (words[i] == null) continue; //null is possible
+                if (!hm.containsKey(words[i]))
+                    hm.put(words[i], new ArrayList<Integer>());
+                hm.get(words[i]).add(i);
+            }
+        }
+
+        public int shortest(String word1, String word2) {
+            if (word1 == null || word2 == null || hm == null || !hm.containsKey(word1) || !hm.containsKey(word2))
+                return -1;
+            List<Integer> l1 = hm.get(word1);
+            List<Integer> l2 = hm.get(word2);
+            int i1 = 0, i2 = 0, min = Integer.MAX_VALUE;
+            while (i1 < l1.size() && i2 < l2.size()){
+                min = Math.min(min, Math.abs(l1.get(i1) - l2.get(i2)));
+                if (l1.get(i1) < l2.get(i2))
+                    ++i1;
+                else
+                    ++i2;
+            }
+            return min;
+        }
+    }
+
+    //245
+    public int shortestWordDistance(String[] words, String word1, String word2) {
+        if (words == null || words.length == 0 || word1 == null || word2 == null)
+            return -1;
+        int i1 = -1, i2 = -1, min = words.length;
+        boolean isSame = word1.equals(word2);
+        for (int i = 0; i < words.length; ++i){
+            if (words[i].equals(word1)){
+                if (isSame && i1 != -1)
+                    min = Math.min(min, i - i1);
+                else if (!isSame && i2 != -1)
+                    min = Math.min(min, i - i2);
+                i1 = i;
+            }
+            else if (words[i].equals(word2)){
+                if (i1 != -1)
+                    min = Math.min(min, i - i1);
+                i2 = i;
+            }
+        }
+        return min;
     }
 
     //246
@@ -3678,8 +3892,27 @@ public class Solution {
         return max;
     }
 
-    //329
+    //328
+    public ListNode oddEvenList(ListNode head) {
+        if (head == null || head.next == null)
+            return head;
+        ListNode dummy = new ListNode(0);
+        ListNode pre = dummy, cur = head, last = head;
 
+        while (cur != null && cur.next != null){
+            pre.next = cur.next;
+            pre = pre.next;
+            cur.next = cur.next.next;
+            last = cur;
+            cur = cur.next;
+        }
+        pre.next = null;
+        last = cur != null ? cur : last; //it can not have the last odd or does
+        last.next = dummy.next;
+        return head;
+    }
+
+    //329
     public int longestIncreasingPath(int[][] matrix) {
         if (matrix == null || matrix.length == 0 || matrix[0].length == 0)
             return 0;
@@ -3832,6 +4065,57 @@ public class Solution {
         }
     }
 
+    //349
+    public int[] intersection(int[] nums1, int[] nums2) {
+        if (nums1 == null || nums1.length == 0 || nums2 == null || nums2.length == 0)
+            return new int[0];
+        if (nums1.length < nums2.length)
+            return intersection(nums2, nums1);
+        Set<Integer> hs = new HashSet<>();
+        for (int x : nums2)
+            hs.add(x);
+        Set<Integer> hs2 = new HashSet<>();
+        for (int x : nums1){
+            if (hs.contains(x))
+                hs2.add(x);
+        }
+        int[] res = new int[hs2.size()];
+        int i = 0;
+//        Iterator<Integer> iter = hs2.iterator();
+//        while (iter.hasNext())
+//            res[i++] = iter.next();
+        for (int k : hs2) //hashset support foreach loop. Note there is no way to directly transform a Set to a primitive int array.
+                            // only hs.toArray(new Integer[hs.size()]); but this is Integer[]
+            res[i++] = k;
+        return res;
+    }
+
+    //350
+    public int[] intersect(int[] nums1, int[] nums2) {
+        if (nums1 == null || nums1.length == 0 || nums2 == null || nums2.length == 0)
+            return new int[0];
+        Arrays.sort(nums1);
+        Arrays.sort(nums2);
+        List<Integer> res = new ArrayList<>();
+        int i1 = 0, i2 = 0;
+        while (i1 < nums1.length && i2 < nums2.length){
+            if (nums1[i1] < nums2[i2])
+                ++i1;
+            else if (nums1[i1] > nums2[i2])
+                ++i2;
+            else {
+                res.add(nums1[i1]);
+                ++i1;
+                ++i2;
+            }
+        }
+        int i = 0;
+        int[] r = new int[res.size()];
+        for (int x : res)
+            r[i++] = x;
+        return r;
+    }
+
     //359
     public class Logger {
         Map<String, Integer> hm;
@@ -3934,6 +4218,34 @@ public class Solution {
         }
     }
 
+    //366
+    public List<List<Integer>> findLeaves(TreeNode root) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        while (root.left != null || root.right != null) {
+            List<Integer> combi = new ArrayList<Integer>();
+            findLeavesHelper(root, null, combi, res);
+        }
+        res.add(Arrays.asList(root.val));
+        return res;
+    }
+
+    private void findLeavesHelper(TreeNode root, TreeNode pre, List<Integer> combi, List<List<Integer>> res){
+        if (root == null)
+            return;
+        if (root.left == null && root.right == null){
+            combi.add(root.val);
+            if (pre.left == root)
+                pre.left = null;
+            else
+                pre.right = null;
+            return;
+        }
+        findLeavesHelper(root.left, root, combi, res);
+        findLeavesHelper(root.right, root, combi, res);
+    }
+
     //368
     public List<Integer> largestDivisibleSubset(int[] nums) {
         List<Integer> res = new ArrayList<>();
@@ -4002,6 +4314,26 @@ public class Solution {
 //
 //
 //    }
+
+    //374
+    int guess(int num){return 0;}
+
+    public int guessNumber(int n) {
+        if (n < 1)
+            return -1;
+        int l = 1, r = n, m;
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            int x = guess(m);
+            if (x < 0)
+                r = m - 1;
+            else if (x > 0)
+                l = m + 1;
+            else
+                return m;
+        }
+        return -1;
+    }
 
     //379
     public class PhoneDirectory {
@@ -4126,6 +4458,27 @@ public class Solution {
             }
         }
         return cnt == 0; //note if there are missing bytes
+    }
+
+    //404
+    private int sumLeft;
+    public int sumOfLeftLeaves(TreeNode root) {
+        if (root == null)
+            return 0;
+        sumOfLeftLeavesHelper(root, null);
+        return this.sumLeft;
+    }
+
+    private void sumOfLeftLeavesHelper(TreeNode root, TreeNode pre){
+        if (root == null)
+            return;
+        if (root.left == null && root.right == null){
+            if (pre != null && pre.left == root)
+                this.sumLeft += root.val;
+            return;
+        }
+        sumOfLeftLeavesHelper(root.left, root);
+        sumOfLeftLeavesHelper(root.right, root);
     }
 
 
