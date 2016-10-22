@@ -441,6 +441,22 @@ public class Solution {
         return dummy.next;
     }
 
+    //24
+    public ListNode swapPairs(ListNode head) {
+        if (head == null || head.next == null) //dont forget head.next == null
+            return head;
+        ListNode dummy = new ListNode(0), pre = dummy, cur = head;
+        while (cur != null && cur.next != null){
+            ListNode next = cur.next.next;
+            pre.next = cur.next;
+            cur.next.next = cur;
+            cur.next = next;
+            pre = cur;
+            cur = next;
+        }
+        return dummy.next;
+    }
+
     //26
     public int removeDuplicates(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -465,6 +481,20 @@ public class Solution {
             ++r;
         }
         return l;
+    }
+
+    //28
+    public int strStr(String haystack, String needle) {
+        if (haystack == null || needle == null || haystack.length() < needle.length())
+            return -1;
+        for (int i = 0; i <= haystack.length() - needle.length(); ++i){
+            int j = 0;
+            while (j < needle.length() && haystack.charAt(i + j) == needle.charAt(j))
+                ++j;
+            if (j == needle.length())
+                return i;
+        }
+        return -1;
     }
 
     //31
@@ -1379,6 +1409,37 @@ public class Solution {
         return res;
     }
 
+    //93
+    public List<String> restoreIpAddresses(String s) {
+        List<String> res = new ArrayList<>();
+        if (s == null || s.length() < 4)
+            return res;
+        restoreIpHelper(s, 0, 0, "", res);
+        return res;
+    }
+
+    private void restoreIpHelper(String s, int i, int k, String pre, List<String> res){
+        if (k == 3){
+            String rest = s.substring(i);
+            if (isValidIp(rest)) {
+                pre += rest;
+                res.add(pre);
+            }
+            return;
+        }
+        for (int j = i + 1; j <= s.length() && j <=i + 3; ++j){ //dont forget j need to be less than length()!!
+            String p = s.substring(i, j);
+            if (isValidIp(p))
+                restoreIpHelper(s, j, k + 1, pre + p + ".", res);
+        }
+    }
+
+    private boolean isValidIp(String s){
+        if (s.length() == 0 || s.length() > 3 || (s.length() > 1 && s.charAt(0) == '0') || Integer.parseInt(s) > 255)
+            return false;
+        return true;
+    }
+
     //94
     public List<Integer> inorderTraversal(TreeNode root) {
         List<Integer> res = new ArrayList<>();
@@ -2245,14 +2306,17 @@ public class Solution {
             return null;
         int n1 = 0, n2 = 0;
         ListNode ha = headA, hb = headB;
-        while (ha != null){
+        while (ha.next != null){
             ++n1;
             ha = ha.next;
         }
-        while (hb != null){
+        while (hb.next != null){
             ++n2;
             hb = hb.next;
         }
+        if (ha != hb)
+            return null; //not intersect
+
         ha = headA;
         hb = headB;
         while (n1 - n2 > 0){
@@ -4523,20 +4587,5 @@ public class Solution {
         sumOfLeftLeavesHelper(root.left, root);
         sumOfLeftLeavesHelper(root.right, root);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 }
