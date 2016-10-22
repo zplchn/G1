@@ -590,6 +590,52 @@ public class Solution {
         return true;
     }
 
+    //37
+    public void solveSudoku(char[][] board) {
+        if (board == null || board.length != 9 || board[0].length != 9)
+            return;
+        solveSudokuHelper(board, 0, 0);
+    }
+
+    private boolean solveSudokuHelper(char[][] board, int i, int j){
+        if (i == 9)
+            return true;
+        if (j == 9)
+            return solveSudokuHelper(board, i + 1, 0);
+
+        if (board[i][j] == '.'){
+            for (char k = '1'; k <= '9'; ++k){
+                board[i][j] = k;
+                if (isValidSudoku2(board, i, j)){
+                    if (solveSudokuHelper(board, i, j+1))
+                        return true;
+                }
+            }
+            board[i][j] = '.'; //still need backtracking
+        }
+        else
+            return solveSudokuHelper(board, i, j + 1);
+        return false;
+    }
+
+    private boolean isValidSudoku2(char[][] board, int i, int j){
+        for (int jj = 0; jj < board[0].length; ++jj){
+            if (board[i][jj] == board[i][j] && jj != j)
+                return false;
+        }
+        for (int ii = 0; ii < board.length; ++ii){
+            if (board[i][j] == board[ii][j] && ii != i)
+                return false;
+        }
+        for (int ii = i /3*3; ii < i/3*3 + 3; ++ii){
+            for (int jj = j/3*3; jj < j/3*3+3; ++jj){
+                if (board[i][j] == board[ii][jj] && !(i == ii && j == jj))
+                    return false;
+            }
+        }
+        return true;
+    }
+
     //39
     public List<List<Integer>> combinationSum(int[] candidates, int target) {
         List<List<Integer>> res = new ArrayList<>();
@@ -1564,6 +1610,39 @@ public class Solution {
         combi.remove(combi.size() - 1);
     }
 
+    //114
+    TreeNode pre;
+    public void flatten(TreeNode root) {
+        if (root == null)
+            return;
+        if (pre != null) {
+            pre.left = null;
+            pre.right = root;
+        }
+        pre = root;
+        TreeNode t = root.right;
+        flatten(root.left);
+        flatten(t);
+    }
+
+    //118
+    public List<List<Integer>> generate(int numRows) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (numRows < 1)
+            return res;
+        res.add(Arrays.asList(1));
+        for (int i = 2; i <= numRows; ++i){
+            List<Integer> combi = new ArrayList<>();
+            combi.add(1);
+            for (int j = 0; j < res.get(i-2).size() - 1; ++j){ //1-based, so i - 1 - 1 is the last row
+                combi.add(res.get(i-2).get(j) + res.get(i-2).get(j+1));
+            }
+            combi.add(1);
+            res.add(combi);
+        }
+        return res;
+    }
+
     //121
     public int maxProfit(int[] prices) {
         if (prices == null || prices.length < 2)
@@ -2399,8 +2478,41 @@ public class Solution {
         numIslandsHelper(grid, i, j + 1);
     }
 
-    //208
+    //203
+    public ListNode removeElements(ListNode head, int val) {
+        if (head == null)
+            return null;
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode pre = dummy;
+        while (pre != null && pre.next != null){
+            if (pre.next.val == val)
+                pre.next = pre.next.next;
+            else
+                pre = pre.next;
+        }
+        return dummy.next;
+    }
 
+    //205
+    public boolean isIsomorphic(String s, String t) {
+        if (s == null || t == null || s.length() != t.length())
+            return false;
+        Map<Character, Character> hm = new HashMap<>();
+        for (int i = 0; i < t.length(); ++i){
+            if (hm.containsKey(t.charAt(i))){
+                if (hm.get(t.charAt(i)) != s.charAt(i))
+                    return false;
+            }
+            else if (hm.containsValue(s.charAt(i)))
+                return false;
+            else
+                hm.put(t.charAt(i), s.charAt(i));
+        }
+        return true;
+    }
+
+    //208
     public class Trie {
         private TrieNode root;
 
@@ -2931,6 +3043,43 @@ public class Solution {
         return res;
     }
 
+    //263
+    public boolean isUgly(int num) {
+        if (num <= 0)
+            return false;
+        while (num % 2 == 0)
+            num /= 2;
+        while (num % 3 == 0)
+            num /= 3;
+        while (num % 5 == 0)
+            num /= 5;
+        return num == 1;
+    }
+
+    //264
+    public int nthUglyNumber(int n) {
+        if (n < 1)
+            return - 1;
+        //dp every ugly = a previous ugly *2/3/5, 3 list merge sort
+        int[] dp = new int[n];
+        dp[0] = 1;
+        int i2 = 0, i3 = 0, i5 = 0;
+        for (int i = 1; i < n; ++i){
+            int m2 = dp[i2] * 2;
+            int m3 = dp[i3] * 3;
+            int m5 = dp[i5] * 5;
+
+            dp[i] = Math.min(m2, Math.min(m3, m5));
+            if (dp[i] == m2)
+                ++i2;
+            if (dp[i] == m3) //note here cannot use elseif: 2 * 3 = 6, 3 * 2 = 6. there will be dup so we need at both if pass the one.
+                ++i3;
+            if (dp[i] == m5)
+                ++i5;
+        }
+        return dp[dp.length - 1];
+    }
+
     //266
     public boolean canPermutePalindrome(String s) {
         if (s == null || s.length() <= 1)
@@ -3447,6 +3596,21 @@ public class Solution {
         public int sumRegion(int row1, int col1, int row2, int col2) {
             return dp[row2+1][col2+1] - dp[row2+1][col1] - dp[row1][col2+1] + dp[row1][col1];
         }
+    }
+
+    //313
+    public int nthSuperUglyNumber(int n, int[] primes) {
+//        if (n <= 0 || primes == null || primes.length == 0)
+//            return 0;
+//        Queue<Integer> pq = new PriorityQueue<>();
+//        pq.offer(1);
+//        int res = 1;
+//        while (n-- > 0){
+//            res = pq.poll();
+//            for (int p : primes)
+//                pq.offer(res * p);
+//        }
+//        return res;
     }
 
     //314
