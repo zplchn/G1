@@ -1162,7 +1162,23 @@ public class Solution {
 
     //77
     public List<List<Integer>> combine(int n, int k) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (n < 1 || k < 1)
+            return res;
+        combineHelper(n, k, 1, 0, new ArrayList<Integer>(), res);
+        return res;
+    }
 
+    private void combineHelper(int n, int k, int start, int cnt, List<Integer> combi, List<List<Integer>> res){
+        if (cnt == k){
+            res.add(new ArrayList<>(combi));
+            return;
+        }
+        for (int i = start; i <= n; ++i){ //i is all the way to n
+            combi.add(i);
+            combineHelper(n, k, i + 1, cnt + 1, combi, res);
+            combi.remove(combi.size() - 1);
+        }
     }
 
     //78
@@ -3214,6 +3230,33 @@ public class Solution {
             pq.offer(intervals[i].end);
         }
         return pq.size();
+    }
+
+    //254
+    public List<List<Integer>> getFactors(int n) {
+        List<List<Integer>> res = new ArrayList<>();
+        if (n <= 1)
+            return res;
+        getFactorsHelper(n, 2, new ArrayList<>(), res);
+        return res;
+    }
+
+    private void getFactorsHelper(int n, int start, List<Integer> combi, List<List<Integer>> res){
+        if (n == 1){
+            if (combi.size() > 1) //when just n itself we filter it out
+                res.add(new ArrayList<>(combi));
+            return;
+        }
+        for (int i = start; i <= (int)Math.sqrt(n); ++i){ //first acending factors only need to supply up to Math.sqrt(n) (double)
+            if (n % i== 0){
+                combi.add(i);
+                getFactorsHelper(n / i, i, combi, res);
+                combi.remove(combi.size() - 1);
+            }
+        }
+        combi.add(n); //then like 16 = 2 * 8. the last n = 8 needs to be inserted into the combi
+        getFactorsHelper(1, n + 1, combi, res);
+        combi.remove(combi.size() - 1);
     }
 
     //257
