@@ -2458,6 +2458,19 @@ public class Solution {
         return res;
     }
 
+    //168
+    public String convertToTitle(int n) {
+        if (n < 1)
+            return "";
+        StringBuilder sb = new StringBuilder();
+        while (n != 0){
+            n -= 1; //every round need to -1 first to adjust to 0-based
+            sb.append((char)(n % 26 + 'A')); //when int + char, must cast to char
+            n /= 26;
+        }
+        return sb.reverse().toString();
+    }
+
     //169
     public int majorityElement(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -2531,6 +2544,26 @@ public class Solution {
             pushLeft(tn.right);
             return tn.val;
         }
+    }
+
+    //174
+    public int calculateMinimumHP(int[][] dungeon) {
+        if (dungeon == null || dungeon.length == 0 || dungeon[0].length == 0)
+            return 0;
+        for (int i = dungeon.length - 1; i >= 0; --i){
+            for (int j = dungeon[0].length - 1; j >= 0; --j){
+                if (i == dungeon.length - 1 && j == dungeon[0].length - 1)
+                    continue;
+                else if (i == dungeon.length - 1)
+                    dungeon[i][j] += Math.min(dungeon[i][j+1], 0);
+                else if (j == dungeon[0].length - 1)
+                    dungeon[i][j] += Math.min(dungeon[i+1][j], 0);
+                else {
+                    dungeon[i][j] += Math.max(Math.min(dungeon[i][j+1], 0), Math.min(dungeon[i+1][j], 0));
+                }
+            }
+        }
+        return -Math.min(dungeon[0][0], 0) +1; // must be at least 1 when leaving start point
     }
 
     //179
@@ -2923,6 +2956,34 @@ public class Solution {
             return countNodes(root.left) + countNodes(root.right) + 1;
     }
 
+    //224
+    public int calculate(String s) {
+        if (s == null || s.length() == 0)
+            return 0;
+        Deque<Integer> st = new ArrayDeque<>();
+        st.push(1); //the first one used for +( left parenthesis for reference
+        st.push(1); //the second one for first num, every num need to pop one op and start calculation immediately
+        int res = 0; //we ignore overflow problem
+        for (int i = 0; i < s.length(); ++i){
+            char c = s.charAt(i);
+            if (Character.isDigit(c)){
+                int num = 0;
+                while (i < s.length() && Character.isDigit(s.charAt(i))){
+                    num = num * 10 + s.charAt(i++) - '0';
+                }
+                --i; //i could be at an op
+                res += st.pop() * num;
+            }
+            else if (c == ')')
+                st.pop();
+            else {
+                st.push(st.peek() * (c == '-'? -1 : 1)); //note for -(2+ 3) when meet (, also need to push because the first num
+                                                        //here the 2 need to pop op and thus need to have its own op, the - need stay
+            }
+        }
+        return res;
+    }
+
     //225
     class MyStack {
         Queue<Integer> q1 = new LinkedList<>();
@@ -3061,6 +3122,33 @@ public class Solution {
         public boolean empty() {
             return s1.isEmpty() && s2.isEmpty();
         }
+    }
+
+    //234
+    public boolean isPalindrome(ListNode head) {
+        if (head == null || head.next == null)
+            return true;
+        ListNode s, f;
+        s = f = head;
+        while (f != null && f.next != null){
+            s = s.next;
+            f = f.next.next;
+        }
+        ListNode pre = null;
+        while (s != null){
+            ListNode next = s.next;
+            s.next = pre;
+            pre = s;
+            s = next;
+        }
+        f = head;
+        while (f != null && pre != null){
+            if (f.val != pre.val)
+                return false;
+            f = f.next;
+            pre = pre.next;
+        }
+        return true;
     }
 
     //235
@@ -3379,6 +3467,14 @@ public class Solution {
         binaryTreePathsHelper(root.right, pre + root.val + "->", res);
     }
 
+    //258
+    public int addDigits(int num) {
+        if (num <= 0)
+            return num;
+        /*this called treeroot and 1 - 1 , 9 - 9, 10 - 1, 18 - 9, 19 -1 so the treeroot rotate every 9*/
+        return (num - 1) % 9 + 1; // dest rotate every 9 so need to mod 9. src is 1-based, need to - 1. target is 1-based, so add 1 last
+    }
+
     //259
     public int threeSumSmaller(int[] nums, int target) {
         if (nums == null || nums.length < 3)
@@ -3647,6 +3743,35 @@ public class Solution {
             }
         }
     }
+
+    //282
+//    public List<String> addOperators(String num, int target) {
+//        List<String> res = new ArrayList<>();
+//        if (num == null || num.length() == 0)
+//            return res;
+//        StringBuilder sb = new StringBuilder();
+//        sb.append(num.charAt(0));
+//        addOperatorHelper(num, 1, num.charAt(0) - '0', target, sb, res);
+//        return res;
+//    }
+//
+//    private void addOperatorHelper(String num, int start, int pre, int target, StringBuilder sb, List<String> res){
+//        if (start == num.length()){
+//            if (pre == target)
+//                res.add(sb.toString());
+//            return;
+//        }
+//        char c = num.charAt(start);
+//        char[] ops = {'+', '-', '*'};
+//        for (char o : ops){
+//            sb.append(o);
+//            switch(o){
+//                case '+':
+//                    addOperatorHelper(num, start + 1, pre )
+//            }
+//        }
+//
+//    }
 
     //284
     class PeekingIterator implements Iterator<Integer> {
