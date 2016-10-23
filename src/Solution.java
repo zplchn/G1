@@ -39,6 +39,12 @@ public class Solution {
         }
     }
 
+    public interface NestedInteger{
+        boolean isInteger();
+        Integer getInteger();
+        List<NestedInteger> getList();
+    }
+
     public static void main(String[] args){
         Solution st = new Solution();
         double x = 0;
@@ -1585,7 +1591,26 @@ public class Solution {
         if (root == null)
             return 0;
         return Math.max(maxDepth(root.left), maxDepth(root.right)) + 1;
+    }
 
+    //105
+    public TreeNode buildTree(int[] preorder, int[] inorder) {
+        if (preorder == null || inorder== null || preorder.length == 0 || preorder.length != inorder.length)
+            return null;
+        Map<Integer, Integer> hm = new HashMap<>();
+        for (int i = 0; i < inorder.length; ++i)
+            hm.put(inorder[i], i);
+        return buildTreeHelper(preorder, 0, preorder.length - 1, inorder, 0, inorder.length - 1, hm);
+    }
+
+    private TreeNode buildTreeHelper(int[] preorder, int pl, int pr, int[] inorder, int il, int ir, Map<Integer, Integer> hm){
+        if (il > ir)
+            return null;
+        TreeNode root = new TreeNode(preorder[pl]);
+        int k = hm.get(preorder[pl]);
+        root.left = buildTreeHelper(preorder, pl + 1, pl + k - il, inorder, il, k - 1, hm);
+        root.right = buildTreeHelper(preorder, pl + k - il + 1, pr, inorder, k + 1, ir, hm);
+        return root;
     }
 
     //107
@@ -2557,6 +2582,17 @@ public class Solution {
         for (int i = 0; i < 32; ++i){
             res = (res << 1) | (n & 1);
             n >>>= 1;
+        }
+        return res;
+    }
+
+    //191
+    public int hammingWeight(int n) {
+        int res = 0;
+        while (n != 0){
+            n = n & (n - 1); //clear least-significant 1. all 1 left to this 1 stays. all 0 right to this flip to 1
+            //so n & (n -1) remove the least-significant 1
+            ++res;
         }
         return res;
     }
@@ -4066,16 +4102,39 @@ public class Solution {
         return total == 0;
     }
 
-
-    //341
-
-    public interface NestedInteger{
-        boolean isInteger();
-        Integer getInteger();
-        List<NestedInteger> getList();
+    //338
+    public int[] countBits(int num) {
+        if (num < 0)
+            return new int[0];
+        int[] res = new int[num + 1];
+        int l = 0;
+        for (int i = 1; i < res.length; ++i){ //start with 2^0 = 1 repeat when every 2^n
+            if ((i & (i-1)) == 0)
+                l = 0;
+            res[i] = res[l++] + 1;
+        }
+        return res;
     }
 
+    //339
+    public int depthSum(List<NestedInteger> nestedList) {
+        if (nestedList == null || nestedList.size() == 0)
+            return 0;
+        return depthSumHelper(nestedList, 1);
+    }
 
+    private int depthSumHelper(List<NestedInteger> list, int depth){
+        int res = 0;
+        for (NestedInteger ni : list){
+            if (ni.isInteger())
+                res += depth * ni.getInteger();
+            else
+                res += depthSumHelper(ni.getList(), depth + 1);
+        }
+        return res;
+    }
+
+    //341
     public class NestedIterator implements Iterator<Integer> {
         Deque<Iterator<NestedInteger>> st;
         Iterator<NestedInteger> iter;
