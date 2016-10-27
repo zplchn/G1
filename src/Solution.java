@@ -143,6 +143,32 @@ public class Solution {
         return (int)res;
     }
 
+    //8
+    public int myAtoi(String str) {
+        if (str == null)
+            return 0;
+        str = str.trim();
+        if (str.length() == 0)
+            return 0;
+        long res = 0;
+        boolean isNeg = false;
+        int start = 0;
+        if (str.charAt(0) == '+' || str.charAt(0) == '-') {
+            isNeg = str.charAt(0) == '-';
+            start = 1;
+        }
+        for (int i = start; i < str.length(); ++i){
+            if (!Character.isDigit(str.charAt(i)))
+                break;
+            res = res * 10 + str.charAt(i) - '0';
+            if (!isNeg && res > Integer.MAX_VALUE)
+                return Integer.MAX_VALUE;
+            else if (isNeg && -res < Integer.MIN_VALUE)
+                return Integer.MIN_VALUE;
+        }
+        return (int)(isNeg?-res:res);
+    }
+
     //9
     public boolean isPalindrome(int x) {
         if (x < 0)
@@ -176,6 +202,25 @@ public class Solution {
             }
         }
         return max;
+    }
+
+    //12
+    public String intToRoman(int num) {
+        if (num < 1)
+            return "";
+        int[]    i = {1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1};
+        String[] r = {"M", "CM", "D", "CD", "C", "XC", "L", "XL", "X", "IX", "V", "IV", "I"};
+        int k = 0;
+        StringBuilder sb = new StringBuilder();
+        while (num >= 1){
+            if (num >= i[k]) {
+                sb.append(r[k]);
+                num -= i[k];
+            }
+            else
+                ++k; //here is ++k haha
+        }
+        return sb.toString();
     }
 
     //13
@@ -689,6 +734,31 @@ public class Solution {
             }
         }
         return true;
+    }
+
+    //38
+    public String countAndSay(int n) {
+        if (n < 1)
+            return "";
+        StringBuilder sb = new StringBuilder("1");
+        while (n-- > 1){
+            StringBuilder sb1 = new StringBuilder();
+            int i = 1, cnt = 1;
+            while (i < sb.length()){
+                if (sb.charAt(i) != sb.charAt(i - 1)){
+                    sb1.append(cnt);
+                    sb1.append(sb.charAt(i - 1));
+                    cnt = 1;
+                }
+                else
+                    ++cnt;
+                ++i;
+            }
+            sb1.append(cnt);
+            sb1.append(sb.charAt(i - 1));
+            sb = sb1;
+        }
+        return sb.toString();
     }
 
     //39
@@ -1343,6 +1413,26 @@ public class Solution {
         return head;
     }
 
+    //84
+    public int largestRectangleArea(int[] heights) {
+        if (heights == null || heights.length == 0)
+            return 0;
+        int max = 0;
+        //stack storing acsending subsequence's index! may not contiguous
+        Deque<Integer> st = new ArrayDeque<>();
+        for (int i = 0; i <= heights.length; ++i){
+            if (st.isEmpty() || (i != heights.length && heights[i] >= heights[st.peek()]))
+                st.push(i);
+            else {
+                while (!st.isEmpty() && (i == heights.length || heights[i] < heights[st.peek()])){
+                    max = Math.max(max, heights[st.pop()] * (st.isEmpty()? i : (i - st.peek() - 1))); //attention stack is index!
+                }
+                --i; //for loop back 1
+            }
+        }
+        return max;
+    }
+
     //86
     public ListNode partition(ListNode head, int x) {
         if (head == null)
@@ -1413,6 +1503,28 @@ public class Solution {
             }
         }
         return res;
+    }
+
+    //92
+    public ListNode reverseBetween(ListNode head, int m, int n) {
+        if (head == null || head.next == null || m < 1 || n < 1 || m >= n)
+            return head;
+        ListNode dummy = new ListNode(0), l = dummy;
+        dummy.next = head;
+        while (l != null && m-- > 1) {
+            l = l.next;
+            --n;
+        }
+        ListNode cur = l.next, pre = null;
+        while (n-- > 0 && cur != null){
+            ListNode next = cur.next;
+            cur.next = pre;
+            pre = cur;
+            cur = next;
+        }
+        l.next.next = cur;
+        l.next = pre;
+        return dummy.next;
     }
 
     //93
@@ -1594,7 +1706,7 @@ public class Solution {
     }
 
     //105
-    public TreeNode buildTree(int[] preorder, int[] inorder) {
+    public TreeNode buildTree1(int[] preorder, int[] inorder) {
         if (preorder == null || inorder== null || preorder.length == 0 || preorder.length != inorder.length)
             return null;
         Map<Integer, Integer> hm = new HashMap<>();
@@ -1610,6 +1722,26 @@ public class Solution {
         int k = hm.get(preorder[pl]);
         root.left = buildTreeHelper(preorder, pl + 1, pl + k - il, inorder, il, k - 1, hm);
         root.right = buildTreeHelper(preorder, pl + k - il + 1, pr, inorder, k + 1, ir, hm);
+        return root;
+    }
+
+    //106
+    public TreeNode buildTree(int[] inorder, int[] postorder) {
+        if (inorder == null || postorder == null || inorder.length == 0 || inorder.length != postorder.length)
+            return null;
+        Map<Integer, Integer> hm = new HashMap<>();
+        for (int i = 0; i < inorder.length; ++i)
+            hm.put(inorder[i], i);
+        return buildTree2Helper(inorder, 0, inorder.length - 1, postorder, 0, postorder.length - 1, hm);
+    }
+
+    private TreeNode buildTree2Helper(int[] inorder, int il, int ir, int[] postorder, int pl, int pr, Map<Integer, Integer> hm){
+        if (il > ir)
+            return null;
+        TreeNode root = new TreeNode(postorder[pr]);
+        int k = hm.get(root.val);
+        root.left = buildTree2Helper(inorder, il, k - 1, postorder, pl, pl + k - il - 1, hm);
+        root.right = buildTree2Helper(inorder, k + 1, ir, postorder, pl + k - il, pr - 1, hm);
         return root;
     }
 
@@ -1790,6 +1922,18 @@ public class Solution {
             res.add(combi);
         }
         return res;
+    }
+
+    //120
+    public int minimumTotal(List<List<Integer>> tri) {
+        if (tri == null || tri.size() == 0 || tri.get(0).size() == 0)
+            return 0;
+        for (int i = tri.size() - 2; i >= 0; --i){
+            for (int j = 0; j < tri.get(i).size(); ++j){
+                tri.get(i).set(j, tri.get(i).get(j) + Math.min(tri.get(i+1).get(j), tri.get(i+1).get(j+1)));
+            }
+        }
+        return tri.get(0).get(0);
     }
 
     //121
@@ -2174,6 +2318,36 @@ public class Solution {
         return fast;
     }
 
+    //143
+    public void reorderList(ListNode head) {
+        if (head == null || head.next == null)
+            return;
+        ListNode slow, fast;
+        slow = fast = head;
+        while (fast != null && fast.next != null){
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        ListNode pre = null;
+        while (slow != null){
+            ListNode next = slow.next;
+            slow.next = pre;
+            pre = slow;
+            slow = next;
+        }
+        fast = head;
+        while (fast != null && pre != null){
+            ListNode nf = fast.next;
+            fast.next = pre;
+            ListNode np = pre.next;
+            pre.next = nf;
+            fast = nf;
+            pre = np;
+        }
+        if (fast != null)
+            fast.next = null; //there is a cse when even the last node points to itself
+    }
+
 
     //144
     public List<Integer> preorderTraversal(TreeNode root) {
@@ -2323,6 +2497,27 @@ public class Solution {
         public int getMin() {
             return mt.peek();
         }
+    }
+
+    //156
+    public TreeNode upsideDownBinaryTree(TreeNode root) {
+        if (root == null)
+            return null;
+        return upsideDownHelper(root, null);
+    }
+
+    private TreeNode upsideDownHelper(TreeNode root, TreeNode parent){
+        if (root == null)
+            return parent;
+        TreeNode newRoot = upsideDownHelper(root.left, root);
+        if (parent != null){
+            root.left = parent.right;
+            root.right = parent;
+        }
+        else {
+            root.left = root.right = null;
+        }
+        return newRoot;
     }
 
     //160
@@ -2514,6 +2709,19 @@ public class Solution {
         int res = 0;
         for (int i = 0; i < s.length(); ++i){
             res = res * 26 + s.charAt(i) - 'A' + 1;
+        }
+        return res;
+    }
+
+    //172
+    public int trailingZeroes(int n) {
+        if (n <=0)
+            return 0;
+        int res = 0;
+        while (n != 0){
+            int x = n / 5;
+            res += x;
+            n = x;
         }
         return res;
     }
@@ -3060,6 +3268,45 @@ public class Solution {
             return l + "->" + r;
     }
 
+    //229
+    public List<Integer> majorityElement2(int[] nums) {
+        List<Integer> res = new ArrayList<>();
+        if (nums == null || nums.length == 0)
+            return res;
+        int m1 = -1, n1 = 0, m2 = -1, n2 = 0;
+        for (int x: nums){
+            if (x == m1) //even if the first one is -1 this is still correct
+                ++n1;
+            else if (x == m2)
+                ++n2;
+            else if (n1 == 0) {
+                m1 = x;
+                n1 = 1;
+            }
+            else if (n2 == 0) {
+                m2 = x;
+                n2 = 1;
+            }
+
+            else {
+                --n1;
+                --n2;
+            }
+        }
+        n1 = n2 = 0;
+        for (int x: nums){
+            if (x == m1)
+                ++n1;
+            if (x == m2)
+                ++n2;
+        }
+        if (n1 > nums.length / 3)
+            res.add(m1);
+        if (m1 != m2 && n2 > nums.length / 3)
+            res.add(m2);
+        return res;
+    }
+
     //230
     private int kth;
     private TreeNode kthNode;
@@ -3360,6 +3607,31 @@ public class Solution {
         return res;
     }
 
+    //250
+    private int uni;
+    public int countUnivalSubtrees(TreeNode root) {
+        if (root == null)
+            return 0;
+        countUniHelper(root);
+        return this.uni;
+    }
+
+    private boolean countUniHelper(TreeNode root){
+        if (root == null)
+            return true;
+        //if (countUniHelper(root.left) && countUniHelper(root.right) && (root.left == null || root.left.val == root.val) && (root.right == null || root.right.val == root.val)){
+        //note why the commentted is wrong!!! it's because the short circuiting. when left is not uni, it wont enter the right check!!!
+        //seperate postorder two subtree check at all times!
+
+        boolean l = countUniHelper(root.left);
+        boolean r = countUniHelper(root.right);
+        if ( l&& r && (root.left == null || root.left.val == root.val) && (root.right == null || root.right.val == root.val)){
+            this.uni++;
+            return true;
+        }
+        return false;
+    }
+
     //251
     public class Vector2D implements Iterator<Integer> {
         List<Iterator<Integer>> iters;
@@ -3447,6 +3719,21 @@ public class Solution {
         combi.remove(combi.size() - 1);
     }
 
+    //256
+    public int minCost(int[][] costs) {
+        if (costs == null || costs.length == 0 || costs[0].length == 0)
+            return 0;
+        for (int i = 1; i < costs.length; ++i){
+            for (int j = 0; j < costs[0].length; ++j){
+                costs[i][j] += Math.min(costs[i-1][(j+1)%costs[0].length], costs[i-1][(j+2)%costs[0].length]);
+            }
+        }
+        int res = costs[costs.length - 1][0]; //res initialized to max!!
+        for (int x : costs[costs.length - 1])
+            res = Math.min(res, x);
+        return res;
+    }
+
     //257
     public List<String> binaryTreePaths(TreeNode root) {
         List<String> res = new ArrayList<>();
@@ -3496,6 +3783,26 @@ public class Solution {
         return res;
     }
 
+    //260
+    public int[] singleNumber3(int[] nums) {
+        int[] res = {0, 0};
+        if (nums == null || nums.length < 2)
+            return res;
+        int xor = 0;
+        for (int i : nums)
+            xor ^= i;
+        //xor is a ^ b, find any bit = 1 means they diff and and everyone    a & -a = rightmost 1 mask
+        xor &= -xor;
+        for (int i : nums){
+            if ((i & xor) == 0)
+                res[0] ^= i;
+            else
+                res[1] ^= i;
+        }
+        return res;
+    }
+
+
     //263
     public boolean isUgly(int num) {
         if (num <= 0)
@@ -3531,6 +3838,31 @@ public class Solution {
                 ++i5;
         }
         return dp[dp.length - 1];
+    }
+
+    //265
+    public int minCostII(int[][] costs) {
+        if (costs == null || costs.length == 0 || costs[0].length == 0)
+            return 0;
+        int min1 = 0, min2 = 0;
+        for (int i = 0; i < costs.length; ++i){
+            int tmin1 = Integer.MAX_VALUE, tmin2 = Integer.MAX_VALUE;
+            for (int j = 0; j < costs[0].length; ++j){
+                if (i == 0 || min1 == costs[i-1][j])
+                    costs[i][j] += min2;
+                else
+                    costs[i][j] += min1;
+                if (costs[i][j] < tmin1){
+                    tmin2 = tmin1;
+                    tmin1 = costs[i][j];
+                }
+                else if (costs[i][j] < tmin2)
+                    tmin2 = costs[i][j];
+            }
+            min1 = tmin1;
+            min2 = tmin2;
+        }
+        return min1;
     }
 
     //266
@@ -3628,6 +3960,41 @@ public class Solution {
             closetValueHelper(root.left, target, diff);
     }
 
+    //271
+    public class Codec {
+
+        // Encodes a list of strings to a single string.
+        public String encode(List<String> strs) {
+            if (strs == null || strs.size() == 0)
+                return "";
+            StringBuilder sb = new StringBuilder();
+            for (String s : strs){
+                sb.append(s.length());
+                sb.append("#");
+                sb.append(s);
+            }
+            return sb.toString();
+        }
+
+        // Decodes a single string to a list of strings.
+        public List<String> decode(String s) {
+            List<String> res = new ArrayList<>();
+            if (s == null || s.length() == 0)
+                return res;
+            int index = 0;
+            while (index < s.length()){
+                int t = s.indexOf('#', index); //indexOf(int ch/String s, [int start])
+                if (t == -1)
+                    return res;
+                int len = Integer.parseInt(s.substring(index, t));
+                res.add(s.substring(t + 1, t + len + 1));
+                index = t + len + 1;
+            }
+
+            return res;
+        }
+    }
+
     //273
     public String numberToWords(int num) {
         if (num == 0)
@@ -3712,6 +4079,20 @@ public class Solution {
         return dp[dp.length - 1];
     }
 
+    //280
+    public void wiggleSort(int[] nums) {
+        if (nums == null || nums.length <= 1)
+            return;
+        for (int i = 0; i < nums.length -1; ++i){
+            if ((i % 2 == 0 && nums[i] > nums[i+1]) ||
+                    (i % 2 == 1 && nums[i] < nums[i+1])){
+                int t = nums[i];
+                nums[i] = nums[i + 1];
+                nums[i + 1] = t;
+            }
+        }
+    }
+
     //281
     public class ZigzagIterator {
         List<Iterator<Integer>> iters;
@@ -3772,6 +4153,22 @@ public class Solution {
 //        }
 //
 //    }
+
+    //283
+    public void moveZeroes(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return;
+        int l = 0, r = 0;
+        while (r < nums.length){
+            if (nums[r] != 0) {
+                nums[l++] = nums[r];
+                nums[r] = 0;
+            }
+            ++r;
+        }
+        while (l < nums.length)
+            nums[l++] = 0;
+    }
 
     //284
     class PeekingIterator implements Iterator<Integer> {
@@ -3904,6 +4301,63 @@ public class Solution {
         }
     }
 
+    //290
+    public boolean wordPattern(String pattern, String str) {
+        if (pattern == null || str == null)
+            return false;
+        String[] tokens = str.split("\\s+");
+        if (pattern.length() != tokens.length)
+            return false;
+        Map<Character, String> hm = new HashMap<>();
+        Set<String> hs = new HashSet<>();
+        for (int i = 0; i < pattern.length(); ++i){
+            if (hm.containsKey(pattern.charAt(i))) {
+                if (!hm.get(pattern.charAt(i)).equals(tokens[i]))
+                    return false;
+            }
+            else if (hs.contains(tokens[i]))
+                return false;
+            else {
+                hm.put(pattern.charAt(i), tokens[i]);
+                hs.add(tokens[i]);
+            }
+        }
+        return true;
+    }
+
+    //291
+    public boolean wordPatternMatch(String pattern, String str) {
+        if (pattern == null || str == null)
+            return false;
+        if (pattern.length() == 0)
+            return str.length() == 0;
+        if (str.length() == 0)
+            return false;
+        return wordPatternHelper(pattern, str, 0, 0, new HashMap<Character, String>());
+    }
+
+    private boolean wordPatternHelper(String pattern, String str, int p, int s, Map<Character, String> hm){
+        if (p == pattern.length())
+            return s == str.length();
+        if (s == str.length())
+            return false;
+        if (hm.containsKey(pattern.charAt(p))){
+            if (str.startsWith(hm.get(pattern.charAt(p)), s))
+                return wordPatternHelper(pattern, str, p + 1, s + hm.get(pattern.charAt(p)).length(), hm);
+            return false; //if not equal need return immediately
+        }
+        for (int i = s + 1; i <= str.length(); ++i){
+            String t = str.substring(s, i);
+            if (hm.containsValue(t)) //dont forget containsValue's case
+                continue;
+            hm.put(pattern.charAt(p), t);
+            if (wordPatternHelper(pattern, str, p + 1, i, hm))
+                return true;
+            hm.remove(pattern.charAt(p));
+        }
+        return false;
+    }
+
     //295
     public class MedianFinder {
         Queue<Integer> minq = new PriorityQueue<>();
@@ -3960,7 +4414,7 @@ public class Solution {
     }
 
     //297
-    public class Codec {
+    public class Codec2 {
         // Encodes a tree to a single string.
         public String serialize(TreeNode root) {
             if (root == null)
@@ -4041,11 +4495,34 @@ public class Solution {
         longestConsecutiveHelper(root.right, root, k);
     }
 
+    //299
+    public String getHint(String secret, String guess) {
+        if (secret == null || secret.length() == 0 || guess == null || guess.length() != secret.length())
+            return "0A0B";
+        Map<Character, Integer> hm = new HashMap<>();
+        int A = 0, B = 0;
+        //"1122" -》 "1222" need only put in the map for misplaced number otherwise the first 2 will reduce matching 2
+        for (int i = 0; i < secret.length(); ++i){
+            if (secret.charAt(i) != guess.charAt(i))
+                hm.put(secret.charAt(i), hm.containsKey(secret.charAt(i))? hm.get(secret.charAt(i)) + 1: 1);
+            else
+                ++A;
+        }
+
+        for (int i = 0; i < guess.length(); ++i){
+            if (secret.charAt(i) != guess.charAt(i) && hm.containsKey(guess.charAt(i)) && hm.get(guess.charAt(i)) > 0){
+                hm.put(guess.charAt(i), hm.get(guess.charAt(i)) - 1);
+                ++B;
+            }
+        }
+        return A + "A" + B + "B";
+    }
+
     //303
-    public class NumArray {
+    public class NumArray1 {
         private int[] dp; //sum of 0 - i
 
-        public NumArray(int[] nums) {
+        public NumArray1(int[] nums) {
             if (nums == null)
                 return;
             dp = Arrays.copyOf(nums, nums.length); //Arrays.copyOf(T [], int new_len) note must supply new length!!
@@ -4077,6 +4554,41 @@ public class Solution {
 
         public int sumRegion(int row1, int col1, int row2, int col2) {
             return dp[row2+1][col2+1] - dp[row2+1][col1] - dp[row1][col2+1] + dp[row1][col1];
+        }
+    }
+
+    //307
+    public class NumArray {
+        int[] tree;//binary index tree, tree[] array 1-based storing sum of "lowbit" number of previous elements, ressulting consecutive intervals
+        int[] arr;//look up time is o(logn)
+
+        public NumArray(int[] nums) {
+            if (nums == null)
+                return;
+            tree = new int[nums.length + 1];
+            arr = new int[nums.length + 1];
+            for (int i = 0; i < nums.length; ++i)
+                update(i, nums[i]);
+        }
+
+        void update(int i, int val) { //update is get delta and popup index + lowbit(index) till array size
+            int delta = val - arr[i+1];
+            for (int k = i+1; k < arr.length; k += (k & -k)){
+                tree[k] += delta;
+            }
+            arr[i+1] = val;
+        }
+
+        private int getSum(int i){ //get sum is start from index and keep minus lowbit(index) till index == 1 (1-based)
+            int res = 0;
+            for (int k = i + 1; k >=0; k -= (k&-k)){
+                res += tree[k];
+            }
+            return res;
+        }
+
+        public int sumRange(int i, int j) {
+            return getSum(j) - getSum(i-1);
         }
     }
 
@@ -4159,6 +4671,20 @@ public class Solution {
         }
         return max;
     }
+
+    //319
+    public int bulbSwitch(int n) {
+        if (n < 0)return 0;
+        return (int)Math.sqrt(n); //a bulb only got change states at the factor number , 8 (1 on, 2 off, 4 on ,8 off) only perfect square
+    }
+
+    //323
+//    public int countComponents(int n, int[][] edges) {
+//        if (n < 0 || edges == null || edges.length == 0 || edges[0].length != 2)
+//            return 0;
+//        int res = 0;
+//
+//    }
 
     //328
     public ListNode oddEvenList(ListNode head) {
