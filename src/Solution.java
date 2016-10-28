@@ -1132,6 +1132,23 @@ public class Solution {
         return sb.reverse().toString();
     }
 
+    //69
+    public int mySqrt(int x) {
+        if (x <= 1)
+            return x;
+        int l = 1, r = x, m;
+        while (l <= r){
+            m = l + ((r-l) >> 1);
+            if (m > x/m)
+                r = m - 1;
+            else if (m < x/m)
+                l = m + 1;
+            else
+                return m;
+        }
+        return r;
+    }
+
     //70
     public int climbStairs(int n) {
         if (n < 0)
@@ -2183,6 +2200,23 @@ public class Solution {
         return dp1[dp1.length - 1] - 1;
     }
 
+    //134
+    public int canCompleteCircuit(int[] gas, int[] cost) {
+        if (gas == null || gas.length == 0 || cost == null || cost.length != gas.length)
+            return 0;
+        int start = 0, total = 0, local = 0;
+        for (int i = 0; i < gas.length; ++i){
+            int add = gas[i] - cost[i];
+            local += add;
+            if (local< 0){
+                local = 0;
+                start = i + 1;
+            }
+            total += add;
+        }
+        return total >= 0? start: -1;
+    }
+
     //135
     public int candy(int[] ratings) {
         if (ratings == null || ratings.length == 0)
@@ -2367,6 +2401,65 @@ public class Solution {
             }
         }
         return res;
+    }
+
+    //145
+    public List<Integer> postorderTraversal(TreeNode root) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null)
+            return res;
+        Deque<TreeNode> st = new ArrayDeque<>();
+        TreeNode pre = null;
+        while (!st.isEmpty() || root != null){
+            if (root != null){
+                st.push(root);
+                root = root.left;
+            }
+            else {
+                if (pre != st.peek().right) { //always keep track of last looked node
+                    root = st.peek().right;
+                    pre = root;
+                }
+                else {
+                    pre = st.pop();
+                    res.add(pre.val);
+                }
+            }
+        }
+        return res;
+    }
+
+    //149
+    class Point{
+        int x, y;
+        Point(){x = 0; y = 0;}
+        Point(int a, int b){x = a; y = b;}
+    }
+    public int maxPoints(Point[] points) {
+        if (points == null || points.length == 0)
+            return 0;
+        int max = 1;
+        for (int i = 0; i < points.length - 1; ++i){
+            int same = 0;
+            Map<Double, Integer> hm = new HashMap<>();
+            for (int j = i + 1; j < points.length; ++j){
+                if (points[i].x == points[j].x && points[i].y == points[j].y)
+                    ++same;
+                else if (points[i].x == points[j].x)
+                    hm.put(Double.MAX_VALUE, hm.containsKey(Double.MAX_VALUE)? hm.get(Double.MAX_VALUE) + 1: 2);
+                else if (points[i].y == points[j].y)
+                    hm.put(0.0, hm.containsKey(0.0)? hm.get(0.0) + 1: 2);
+                else {
+                    double slope = (double)(points[j].y - points[i].y)/(points[j].x - points[i].x);
+                    hm.put(slope, hm.containsKey(slope)? hm.get(slope) + 1: 2);
+                }
+            }
+            int lmax = 1;
+            for (int x : hm.values())
+                lmax = Math.max(lmax, x);
+            max = Math.max(max, lmax + same);
+        }
+        return max;
     }
 
     //150
@@ -2817,6 +2910,26 @@ public class Solution {
         s[r] = t;
     }
 
+    //187
+    public List<String> findRepeatedDnaSequences(String s) {
+        List<String> res = new ArrayList<>();
+        if (s == null || s.length() <= 10)
+            return res;
+        Set<String> hs = new HashSet<>();
+        Set<String> res2 = new HashSet<>();
+
+        for (int j = 0; j+10 <= s.length(); ++j){
+            String str = s.substring(j, j + 10);
+            if (hs.contains(str))
+                res2.add(str);
+            else
+                hs.add(str);
+        }
+
+        res.addAll(res2);
+        return res;
+    }
+
     //190
     public int reverseBits(int n) {
         int res = 0;
@@ -2836,6 +2949,17 @@ public class Solution {
             ++res;
         }
         return res;
+    }
+
+    //198
+    public int rob(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        int[] dp = new int[nums.length + 1];
+        dp[1] = nums[0];
+        for (int i = 1; i < nums.length; ++i)
+            dp[i+1] = Math.max(dp[i], nums[i] + dp[i-1]);
+        return dp[dp.length - 1];
     }
 
     //199
@@ -2897,6 +3021,37 @@ public class Solution {
         numIslandsHelper(grid, i, j + 1);
     }
 
+    //201
+    public int rangeBitwiseAnd(int m, int n) {
+    //low bit diff, high bit same
+        int i = 0;
+        while (m != n){
+            m >>= 1;
+            n >>= 1;
+            ++i;
+        }
+        return m << i;
+    }
+
+    //202
+    public boolean isHappy(int n) {
+        if (n <= 0)
+            return false;
+        Set<Integer> hs = new HashSet<>();
+        while (!hs.contains(n)){
+            hs.add(n);
+            int sum = 0;
+            while (n != 0){
+                sum += (n % 10) * (n % 10);
+                n /= 10;
+            }
+            if (sum == 1)
+                return true;
+            n = sum;
+        }
+        return false;
+    }
+
     //203
     public ListNode removeElements(ListNode head, int val) {
         if (head == null)
@@ -2911,6 +3066,24 @@ public class Solution {
                 pre = pre.next;
         }
         return dummy.next;
+    }
+
+    //204
+    public int countPrimes(int n) {
+        if (n < 2)
+            return 0;
+        boolean[] mark = new boolean[n+1];
+        for (int i = 2; i * i < n; ++i){
+            if (!mark[i]){
+                for (int j = i; i * j < n; ++j)
+                    mark[i * j] = true;
+            }
+        }
+        int cnt = 0;
+        for (int i = 2; i < n; ++i)
+            if (!mark[i])
+                ++cnt;
+        return cnt;
     }
 
     //205
@@ -3090,6 +3263,25 @@ public class Solution {
         findWordsHelper(board, i, j + 1, root, sb, res);
         board[i][j] ^= 256;
         sb.deleteCharAt(sb.length() - 1);
+    }
+
+    //213
+    public int robCircle(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        if (nums.length == 1)
+            return nums[0];
+        int max = 0;
+        int[] dp = new int[nums.length];
+        dp[1] = nums[0]; //here must take care of when nums = [1], so rule it out before this
+        for (int i = 1; i < nums.length - 1; ++i)
+            dp[i+1] = Math.max(dp[i], dp[i-1] + nums[i]);
+        max = dp[dp.length - 1];
+        Arrays.fill(dp, 0);
+        dp[1] = nums[1];
+        for (int i = 2; i < nums.length; ++i)
+            dp[i] = Math.max(dp[i-1], dp[i-2] + nums[i]);
+        return Math.max(max, dp[dp.length - 1]);
     }
 
     //216
@@ -5063,6 +5255,27 @@ public class Solution {
         findLeavesHelper(root.right, root, combi, res);
     }
 
+    //367
+    public boolean isPerfectSquare(int num) {
+        if (num < 0)
+            return false;
+        else if (num <= 1)
+            return true;
+
+        long l = 1, r = num, m;//must convert to long to prevent overflow!!
+        while (l <= r){
+            m = l + ((r-l) >> 1);
+
+            if (m*m > num)
+                r = m - 1;
+            else if (m*m < num)
+                l = m + 1;
+            else
+                return true;
+        }
+        return false;
+    }
+
     //368
     public List<Integer> largestDivisibleSubset(int[] nums) {
         List<Integer> res = new ArrayList<>();
@@ -5126,11 +5339,29 @@ public class Solution {
         return newHead;
     }
 
+    //370
+    public int[] getModifiedArray(int length, int[][] updates) {
+        int[] res = new int[length];
+        if (updates == null || updates.length == 0 || updates[0].length != 3)
+            return res;
+        for (int i = 0; i < updates.length; ++i){
+            res[updates[i][0]] += updates[i][2];
+            if (updates[i][1] + 1 < length)
+                res[updates[i][1] + 1] -= updates[i][2];
+        }
+        for (int i = 1; i < res.length; ++i)
+            res[i] += res[i-1];
+        return res;
+    }
+
     //371
-//    public int getSum(int a, int b) {
-//
-//
-//    }
+    public int getSum(int a, int b) {
+        if (b == 0)
+            return a;
+        int add = a ^ b;
+        int carry = a & b << 1;
+        return getSum(add, carry);
+    }
 
     //374
     int guess(int num){return 0;}
