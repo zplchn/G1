@@ -39,6 +39,8 @@ public class Solution {
         }
     }
 
+
+
     public interface NestedInteger{
         boolean isInteger();
         Integer getInteger();
@@ -852,6 +854,33 @@ public class Solution {
         return res;
     }
 
+    //43
+    public String multiply(String num1, String num2) {
+        if (num1 == null || num1.length() == 0 || num1.equals("0")
+                || num2 == null || num2.length() == 0 || num2.equals("0"))
+            return "0";
+        StringBuilder sb1 = new StringBuilder(num1).reverse();
+        StringBuilder sb2 = new StringBuilder(num2).reverse();
+
+        int[] mul = new int[sb1.length() + sb2.length()];
+        for (int i = 0; i < sb1.length(); ++i){
+            for (int j = 0; j < sb2.length(); ++j){
+                mul[i + j] += (sb1.charAt(i) - '0') * (sb2.charAt(j) - '0');
+            }
+        }
+        StringBuilder sb = new StringBuilder();
+        int carry = 0;
+        for (int i = 0; i < mul.length; ++i){
+            mul[i] += carry;
+            sb.append(mul[i] % 10);
+            carry = mul[i] / 10;
+        }
+        sb = sb.reverse();
+        if (sb.charAt(0) == '0')
+            return sb.substring(1);
+        return sb.toString();
+    }
+
     //45
     public int jump(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -949,6 +978,70 @@ public class Solution {
              return t * t / x;
         else
             return t * t * x;
+    }
+
+    //51
+    public List<List<String>> solveNQueens(int n) {
+        List<List<String>> res = new ArrayList<>();
+        if (n <= 0)
+            return res;
+        solveQueensHelper(n, 0, new int[n], res);
+        return res;
+    }
+
+    private void solveQueensHelper(int n, int row, int[] colForQueens, List<List<String>> res){
+        if (row == n){
+            List<String> combi = new ArrayList<>();
+            for (int c : colForQueens){
+                char[] q = new char[n]; //note the ways to initialize a string with same char
+                Arrays.fill(q, '.');
+                q[c] = 'Q';
+                combi.add(new String(q));
+            }
+            res.add(combi);
+            return;
+        }
+        for (int j = 0; j < n; ++j){
+            if (isValidQueen(colForQueens, row, j)){
+                colForQueens[row] = j;
+                solveQueensHelper(n, row + 1, colForQueens, res);
+            }
+        }
+    }
+
+    private boolean isValidQueen(int[] colForQueens, int r, int c){
+        for (int i = 0; i < r; ++i){
+            if (colForQueens[i] == c || Math.abs(colForQueens[i] - c) == r - i)
+                return false;
+        }
+        return true;
+    }
+
+    //52
+    public int totalNQueens(int n) {
+        if (n <= 0)
+            return 0;
+        return totalNQueensHelper(n, 0, new int[n]);
+    }
+
+    private int totalNQueensHelper(int n, int row, int[] colForQueens){
+        int cnt = 0;
+        if (row == n)
+            return 1;
+        for (int j = 0; j < n; ++j){
+            colForQueens[row] = j;
+            if (isValidQueens(row, j, colForQueens))
+                cnt += totalNQueensHelper(n, row + 1, colForQueens);
+        }
+        return cnt;
+    }
+
+    private boolean isValidQueens(int r, int c, int[] colForQueens){
+        for (int i = 0; i < r; ++i){
+            if (colForQueens[i] == c || r - i == Math.abs(colForQueens[i] - c))
+                return false;
+        }
+        return true;
     }
 
     //53
@@ -2613,6 +2706,49 @@ public class Solution {
         return newRoot;
     }
 
+    //157
+    int read4(char[] buf){return 0;}
+    public int read1(char[] buf, int n) {
+        if (buf == null || buf.length == 0 || n <= 0)
+            return 0;
+        char[] buffer = new char[4];
+        int i = 0;
+        boolean eof = false;
+        while (!eof && n > 0){
+            int x = Math.min(n, read4(buffer)); //toread or left, one less than 4 then we r done
+            n -= x;
+            System.arraycopy(buffer, 0, buf, i, x);
+            i += x;
+            if (x < 4)
+                eof = true;
+        }
+        return i;
+    }
+
+    //158
+    private char[] buf4 = new char[4];
+    private int buf4Idx = 0, buf4Left = 0;
+    public int read(char[] buf, int n) {
+        if (buf == null || buf.length == 0 || n < 0)
+            return 0;
+        int i = 0;
+        boolean eof = false;
+        while (!eof && n > 0){
+            if (buf4Left == 0){
+                buf4Left = read4(buf4);
+                if (buf4Left < 4)
+                    eof = true;
+            }
+            int x = Math.min(n, buf4Left);
+            n -= x;
+            System.arraycopy(buf4, buf4Idx, buf, i, x);
+            i += x;
+            buf4Left -= x;
+            buf4Idx = (buf4Idx + x) % 4;
+        }
+        return i;
+    }
+
     //160
     public ListNode getIntersectionNode(ListNode headA, ListNode headB) {
         if (headA == null || headB == null)
@@ -3284,6 +3420,22 @@ public class Solution {
         return Math.max(max, dp[dp.length - 1]);
     }
 
+    //215
+    public int findKthLargest(int[] nums, int k) {
+        if (nums == null || nums.length == 0 || k < 1)
+            return -1;
+        Queue<Integer> pq = new PriorityQueue<>();
+        for (int x : nums){
+            if (pq.size() < k)
+                pq.offer(x);
+            else if (x > pq.peek()){
+                pq.poll();
+                pq.offer(x);
+            }
+        }
+        return pq.poll();
+    }
+
     //216
     public List<List<Integer>> combinationSum3(int k, int n) {
         List<List<Integer>> res = new ArrayList<>();
@@ -3624,6 +3776,44 @@ public class Solution {
             return;
         node.val = node.next.val;
         node.next = node.next.next;
+    }
+
+    //238
+    public int[] productExceptSelf(int[] nums) {
+        if (nums == null || nums.length <= 1)
+            return nums;
+        int[] res = new int[nums.length];
+        res[0] = 1;
+        for (int i = 1; i < res.length; ++i){
+            res[i] = res[i-1] * nums[i-1];
+        }
+        int right = nums[res.length - 1];
+        for (int i = res.length - 2; i >= 0; --i){
+            res[i] *= right;
+            right *= nums[i];
+        }
+        return res;
+    }
+
+    //239
+    public int[] maxSlidingWindow(int[] nums, int k) {
+        //use deque and store descending seq in the window. add every time the last new one, and decide if output then shrink the left
+        if (nums == null || k <= 0 || nums.length == 0)
+            return nums;
+        Deque<Integer> dq = new ArrayDeque<>();
+        int[] res = new int[nums.length - k + 1];
+
+        for (int r = 0, j = 0; r < nums.length; ++r){
+            while (!dq.isEmpty() && nums[r] > dq.peekLast())
+                dq.pollLast();
+            dq.offer(nums[r]);
+            if (r >= k - 1){
+                res[j++] = dq.peekFirst();
+                if (dq.peekFirst() == nums[r - k + 1]) //when move, left is shrinked status
+                    dq.pollFirst();
+            }
+        }
+        return res;
     }
 
     //242
@@ -4219,6 +4409,18 @@ public class Solution {
             return less20[num / 100] + " Hundred" + (num % 100 == 0? "": " " + numberToWordsHelper(num % 100));
     }
 
+    //276
+    public int numWays(int n, int k) {
+        if (n < 1 || k < 1)
+            return 0;
+        if (n <= 2)
+            return k;
+        int first = k, second = k, res = 0;
+        for (int i = 3; i <= n; ++i){
+            res =
+        }
+    }
+
     //277
     boolean knows(int a, int b){return true;}
 
@@ -4424,6 +4626,28 @@ public class Solution {
         return lastLeft;
     }
 
+    //287
+    public int findDuplicate(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return -1;
+        //let's say 1,2,3 in a len=4 array, so there will be a dup for sure. next, there will be a cycle follow i->num[i]->num[num[i]]
+        //because all number is <= 3 back to the array. the dup one will be where the cycle start since there are more than 1 point to it
+        int slow, fast;
+        slow = fast = 0;
+        while (true){
+            slow = nums[slow];
+            fast = nums[nums[fast]];
+            if (slow == fast)
+                break;
+        }
+        slow = 0;
+        while (slow != fast){
+            slow = nums[slow];
+            fast = nums[fast];
+        }
+        return slow;
+    }
+
     //288
     public class ValidWordAbbr {
         //note the question is no OTHER words in the dict. -> either no word with the same abbrev, or exist the abbrev but just the same
@@ -4548,6 +4772,12 @@ public class Solution {
             hm.remove(pattern.charAt(p));
         }
         return false;
+    }
+
+    //292
+    public boolean canWinNim(int n) {
+        return n % 4 != 0; // when 4 must fail. so 5,6,7 can remove 1-3to make competitor a 4, competitor must fail, we win;
+        //8 no matter how many we remove, competitor become 5,6,7 they win. so every mod 4 we lose
     }
 
     //295
@@ -4710,6 +4940,31 @@ public class Solution {
         return A + "A" + B + "B";
     }
 
+    //300
+    public int lengthOfLIS(int[] nums) {
+        if (nums == null || nums.length == 0)
+            return 0;
+        //we maintain a list which any elem is the last elem of a bare minimum LIS, meaning they are the minimum possble tail of any length
+        //and we update based on binary-search to find the first tail
+        List<Integer> tails = new ArrayList<>();
+        tails.add(nums[0]);
+        for (int i = 1; i < nums.length; ++i){
+            int l = 0, r = tails.size() - 1, m;
+            while (l <= r){
+                m = l + ((r - l) >> 1);
+                if (tails.get(m) < nums[i])
+                    l = m + 1;
+                else
+                    r = m - 1;
+            }
+            if (l == tails.size())
+                tails.add(nums[i]);
+            else
+                tails.set(l, nums[i]);
+        }
+        return tails.size();
+    }
+
     //303
     public class NumArray1 {
         private int[] dp; //sum of 0 - i
@@ -4785,7 +5040,7 @@ public class Solution {
     }
 
     //313
-    public int nthSuperUglyNumber(int n, int[] primes) {
+    //public int nthSuperUglyNumber(int n, int[] primes) {
 //        if (n <= 0 || primes == null || primes.length == 0)
 //            return 0;
 //        Queue<Integer> pq = new PriorityQueue<>();
@@ -4797,7 +5052,7 @@ public class Solution {
 //                pq.offer(res * p);
 //        }
 //        return res;
-    }
+    //}
 
     //314
     public List<List<Integer>> verticalOrder(TreeNode root) {
@@ -4870,6 +5125,24 @@ public class Solution {
         return (int)Math.sqrt(n); //a bulb only got change states at the factor number , 8 (1 on, 2 off, 4 on ,8 off) only perfect square
     }
 
+    //322
+    public int coinChange(int[] coins, int amount) {
+        //not greedy say we want 6 - {4,3,1} 4 should not be selected
+        if (coins == null || coins.length == 0 || amount < 0)
+            return 0; //if negative, then could be unlimited way of giving coins. a neg + pos
+        Arrays.sort(coins);
+        int[] dp = new int[amount + 1];
+        Arrays.fill(dp, amount + 1);
+        dp[0] = 0;
+        for (int i = 1; i < dp.length; ++i){
+            for (int j = 0; j < coins.length && coins[j] <= i; ++j){
+                if (dp[i - coins[j]] <= amount)
+                    dp[i] = Math.min(dp[i], dp[i - coins[j]] + 1);
+            }
+        }
+        return dp[dp.length -1] > amount? -1: dp[dp.length - 1];
+    }
+
     //323
 //    public int countComponents(int n, int[][] edges) {
 //        if (n < 0 || edges == null || edges.length == 0 || edges[0].length != 2)
@@ -4877,6 +5150,17 @@ public class Solution {
 //        int res = 0;
 //
 //    }
+
+    //326
+    public boolean isPowerOfThree(int n) {
+        //a trick solution will be get the maximum of power of 3 X, X % n == 0 will be power of three
+        if (n <= 0)
+            return false;
+        while (n % 3 == 0){
+            n /= 3;
+        }
+        return n == 1;
+    }
 
     //328
     public ListNode oddEvenList(ListNode head) {
@@ -4943,6 +5227,26 @@ public class Solution {
                 total += 2;
         }
         return total == 0;
+    }
+
+    //337
+    public int rob(TreeNode root) {
+        if (root == null)
+            return 0;
+        int[] res = robHelper(root);
+        return Math.max(res[0], res[1]);
+    }
+
+    private int[] robHelper(TreeNode root){
+        int[] dp = new int[2];
+        if (root == null)
+            return dp;
+        int[] ldp = robHelper(root.left);
+        int[] rdp = robHelper(root.right);
+        //dp[not use root, max of (max(left), max(Right)) OR use root, root+ no use root left + no use root right)
+        dp[0] = Math.max(ldp[0], ldp[1]) + Math.max(rdp[0], rdp[1]);
+        dp[1] = root.val + ldp[0] + rdp[0];
+        return dp;
     }
 
     //338
@@ -5022,6 +5326,25 @@ public class Solution {
         }
     }
 
+    //342
+    public boolean isPowerOfFour(int num) {
+        //num > 0 , num&(num-1) == 0 is power of 2. for 4, ...01010101 we need one of the odd bit has a one. so &0x55555555
+        return (num > 0 && (num & (num - 1)) == 0 && (num & 0x55555555) == num);
+    }
+
+    //343
+    public int integerBreak(int n) {
+        //when n > 4. always maximum product is have as many 3 as possible until the remainder is <= 4, when 4 is 2*2 or 1*4 is 4 > 3*1
+        if (n <= 3)
+            return n-1; //less than 3 special
+        int res = 1;
+        while (n > 4){
+            res *= 3;
+            n -= 3;
+        }
+        return res * n;
+    }
+
     //344
     public String reverseString(String s) {
         if (s == null || s.length() == 0)
@@ -5074,6 +5397,59 @@ public class Solution {
         }
     }
 
+    //347
+    public List<Integer> topKFrequent(int[] nums, int k) {
+        List<Integer> res = new ArrayList<>();
+        if (nums == null || nums.length == 0 || k < 1)
+            return res;
+        //first stat, then use minheap o(nlogk)
+        Map<Integer, Integer> hm = new HashMap<>();
+        for (int x : nums){
+            hm.put(x, hm.getOrDefault(x, 0) + 1);
+        }
+        //bucket sort
+        List<Integer>[] bucket = new List[nums.length + 1];
+        for (Map.Entry<Integer, Integer> e : hm.entrySet()){
+            if (bucket[e.getValue()] == null)
+                bucket[e.getValue()] = new ArrayList<>();
+            bucket[e.getValue()].add(e.getKey());
+        }
+        for (int i = bucket.length - 1; i >= 0; --i){
+            if (bucket[i] != null) {
+                for (int x : bucket[i]) {
+                    res.add(x);
+                    if (res.size() == k)
+                        break;
+                }
+            }
+        }
+        return res;
+/*
+        class Tuple{
+            int first;
+            int second;
+            Tuple(){first = second = 0;}
+            Tuple(int x, int y){first = x; second = y;}
+        }
+
+        Queue<Tuple> pq = new PriorityQueue<>((t1, t2)->t1.second - t2.second);
+
+        for(Map.Entry<Integer, Integer> e: hm.entrySet()){
+            if (pq.size() < k)
+                pq.offer(new Tuple(e.getKey(), e.getValue()));
+            else if (e.getValue() > pq.peek().second){
+                pq.poll();
+                pq.offer(new Tuple(e.getKey(), e.getValue()));
+            }
+        }
+        for (Tuple t : pq)
+            res.add(t.first);
+
+
+        return res;
+        */
+    }
+
     //349
     public int[] intersection(int[] nums1, int[] nums2) {
         if (nums1 == null || nums1.length == 0 || nums2 == null || nums2.length == 0)
@@ -5123,6 +5499,38 @@ public class Solution {
         for (int x : res)
             r[i++] = x;
         return r;
+    }
+
+    //351
+    public int numberOfPatterns(int m, int n) {
+        if (m < 1 || m > 9 || n < 1 || n > 9)
+            return 0;
+        int[][] mid = new int[10][10];
+        mid[1][3] = mid[3][1] = 2;
+        mid[1][7] = mid[7][1] = 4;
+        mid[9][7] = mid[7][9] = 8;
+        mid[9][3] = mid[3][9] = 6;
+        mid[2][8] = mid[8][2] = mid[4][6] = mid[6][4] = mid[1][9] = mid[9][1] = mid[3][7] = mid[7][3] = 5;
+        boolean[] visited = new boolean[10];
+        visited[0] = true;
+        return numberOfPatternsHelper(m, n, mid, 1, 1, visited) * 4 +
+                numberOfPatternsHelper(m, n, mid, 2, 1, visited) * 4 +
+                numberOfPatternsHelper(m, n, mid, 5, 1, visited);
+    }
+
+    private int numberOfPatternsHelper(int m, int n, int[][] mid, int s, int len, boolean[] visited){
+        int cnt = 0; //since this dfs, the middle steps will also count, so this is the technic. set a counter to 0
+        if (len >= m && len <= n)
+            cnt = 1;
+        if (len > n)
+            return 0;
+        visited[s] = true;
+        for (int i = 1; i <= 9; ++i){
+            if (!visited[i] && visited[mid[s][i]])
+                cnt += numberOfPatternsHelper(m, n, mid, i, len + 1, visited); //and use += all sub senarios originated based on this step
+        }
+        visited[s] = false;
+        return cnt; //and return the total to the parent
     }
 
     //359
@@ -5383,6 +5791,22 @@ public class Solution {
         return -1;
     }
 
+    //377
+    public int combinationSum4(int[] nums, int target) {
+        //same to 322 coin change.every element can literally taken by unlimitted times, so dp[i] += dp[i-nums[k]] for every k < i, dp[i] means for target=i, #of combi
+        if (nums == null || nums.length == 0)
+            return 0;
+        int[] dp = new int[target + 1];
+        dp[0] = 1;
+        Arrays.sort(nums);
+        for (int i = 1; i < dp.length; ++i){
+            for (int j = 0; j < nums.length && nums[j] <= i ; ++j){
+                dp[i] += dp[i - nums[j]];
+            }
+        }
+        return dp[dp.length - 1];
+    }
+
     //379
     public class PhoneDirectory {
         BitSet bs;
@@ -5456,6 +5880,41 @@ public class Solution {
         }
     }
 
+    //383
+    public boolean canConstruct(String ransomNote, String magazine) {
+        if (ransomNote == null || magazine == null)
+            return false;
+        //since it's all ascii, array is faster than hm
+        int[] counter = new int[128];
+        for (int i = 0; i < magazine.length(); ++i)
+            ++counter[magazine.charAt(i)];
+        for (int i = 0; i < ransomNote.length(); ++i){
+            if (--counter[ransomNote.charAt(i)] < 0)
+                return false;
+        }
+        return true;
+    }
+
+    //386
+    public List<Integer> lexicalOrder(int n) {
+        List<Integer> res = new ArrayList<>();
+        if (n < 1)
+            return res;
+        for (int i = 1; i <= 9; ++i){
+            lexicalOrderHelper(n, i, res);
+        }
+        return res;
+    }
+
+    private void lexicalOrderHelper(int n, int i, List<Integer> res){
+        if (i > n)
+            return;
+        res.add(i);
+        for (int j = i * 10; j <= n && j <= i * 10 + 9; ++j){
+            lexicalOrderHelper(n, j, res);
+        }
+    }
+
     //387
     public int firstUniqChar(String s) {
         if (s == null || s.length() == 0)
@@ -5486,6 +5945,22 @@ public class Solution {
         }
 
         return res;
+    }
+
+    //392
+    public boolean isSubsequence(String s, String t) {
+        if (s == null || t == null)
+            return false;
+        for (int i = 0, j = 0; i < s.length(); ++i){
+            char sc = s.charAt(i);
+            while (j < t.length() && t.charAt(j) != sc)
+                ++j;
+            if (j == t.length())
+                return false;
+            else
+                ++j; //need to pass this "aa" -"ab"
+        }
+        return true;
     }
 
     //393
