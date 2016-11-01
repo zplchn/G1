@@ -39,8 +39,6 @@ public class Solution {
         }
     }
 
-
-
     public interface NestedInteger{
         boolean isInteger();
         Integer getInteger();
@@ -109,6 +107,23 @@ public class Solution {
         }
         pre.next = null;
         return dummy.next;
+    }
+
+    //3
+    public int lengthOfLongestSubstring(String s) {
+        if (s == null || s.length() == 0)
+            return 0;
+        Map<Character, Integer> hm = new HashMap<>();
+        int l = 0, max = 0;
+        for (int i = 0; i < s.length(); ++i){
+            if (hm.containsKey(s.charAt(i)) && hm.get(s.charAt(i)) >= l){
+                max = Math.max(max, i - l);
+                l = hm.get(s.charAt(i)) + 1;
+            }
+            hm.put(s.charAt(i), i);
+        }
+        max = Math.max(max, s.length() - l);
+        return max;
     }
 
     //5
@@ -548,6 +563,45 @@ public class Solution {
                 return i;
         }
         return -1;
+    }
+
+    //30
+    public List<Integer> findSubstring(String s, String[] words) {
+        List<Integer> res = new ArrayList<>();
+        if (s == null || s.length() == 0 || words == null || words.length == 0)
+            return res;
+        Map<String, Integer> hm = new HashMap<>();
+        for (String w : words)
+            hm.put(w, hm.getOrDefault(w, 0) +1);
+        int wlen = words[0].length();
+        for (int i = 0; i < wlen; ++i){
+            int cnt = 0;
+            Map<String, Integer> lm = new HashMap<>(hm);
+            for (int j = i, l = i; j <= s.length() - wlen; j += wlen){
+                String str = s.substring(j, j + wlen);
+                if (lm.containsKey(str)){
+                    lm.put(str, lm.get(str) - 1);
+                    if (lm.get(str) >= 0)
+                        ++cnt;
+                    while (cnt == words.length){
+                        String lstr = s.substring(l, l + wlen);
+                        if (!lm.containsKey(lstr))
+                            l += wlen;
+                        else if (lm.get(lstr) < 0){
+                            lm.put(lstr, lm.get(lstr) + 1);
+                            l += wlen;
+                        }
+                        else {
+                            if (j - l == wlen * (words.length - 1)){
+                                res.add(l);
+                            }
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+        return res;
     }
 
     //31
@@ -1374,6 +1428,42 @@ public class Solution {
             else
                 ++i1;
         }
+    }
+
+    //76
+    public String minWindow(String s, String t) {
+        if (s == null || s.length() == 0 || t == null || t.length() ==0 || s.length() < t.length())
+            return "";
+        Map<Character, Integer> hm = new HashMap<>();
+        for (int i = 0; i < t.length(); ++i)
+            hm.put(t.charAt(i), hm.getOrDefault(t.charAt(i), 0) + 1);
+        int cnt = 0, l = 0, min = s.length() + 1;
+        String res = "";
+        for (int i = 0; i < s.length(); ++i){
+            char c = s.charAt(i);
+            if (hm.containsKey(c)){
+                hm.put(c, hm.get(c) - 1);
+                if (hm.get(c) >= 0)
+                    ++cnt;
+                while (cnt == t.length()){
+                    char lc = s.charAt(l);
+                    if (!hm.containsKey(lc))
+                        ++l;
+                    else if (hm.get(lc) < 0){
+                        hm.put(lc, hm.get(lc) + 1);
+                        ++l;
+                    }
+                    else {
+                        if (i - l + 1< min){
+                            min = i -l + 1;
+                            res = s.substring(l, i + 1);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+        return res;
     }
 
     //77
