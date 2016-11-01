@@ -1279,6 +1279,52 @@ public class Solution {
         return sb.reverse().toString();
     }
 
+    //68
+    public List<String> fullJustify(String[] words, int maxWidth) {
+        List<String> res = new ArrayList<>();
+        if (words == null || words.length == 0 || maxWidth <= 0)
+            return res;
+        int cnt = 0, last = 0; //cnt is current line total char, last is where we were in the words array
+
+        for (int i = 0; i <= words.length; ++i){
+            if (i != words.length && cnt + words[i].length() + (i - last) <= maxWidth)
+                cnt += words[i].length(); //i - last is the bear minimum space between words needed
+            else {
+                //calculate space for current row
+                int spaceLeft = maxWidth - cnt;
+                int spaceSlot = i - last - 1;
+                StringBuilder sb = new StringBuilder();
+
+                if (i != words.length && spaceSlot > 0){ //this line has more than 1 words
+                    int avgSpace = spaceLeft / spaceSlot;
+                    int firstExtra = spaceLeft % spaceSlot;
+
+                    for (int j = last; j < i; ++j){
+                        sb.append(words[j]);
+                        for (int a = 0; a < avgSpace; ++a)
+                            sb.append(" ");
+                        if (firstExtra > 0) {
+                            sb.append(" ");
+                            firstExtra = 0;
+                        }
+                    }
+                }
+                else { //only one word in this line or last line
+                    for (int j = last; j < i; ++j) {
+                        sb.append(words[j]);
+                        for (int a = sb.length(); a < maxWidth; ++a)
+                            sb.append(" ");
+                    }
+                }
+                res.add(sb.toString());
+                last = i;
+                cnt = 0;
+                --i;
+            }
+        }
+        return res;
+    }
+
     //69
     public int mySqrt(int x) {
         if (x <= 1)
@@ -1434,23 +1480,30 @@ public class Solution {
     public String minWindow(String s, String t) {
         if (s == null || s.length() == 0 || t == null || t.length() ==0 || s.length() < t.length())
             return "";
-        Map<Character, Integer> hm = new HashMap<>();
-        for (int i = 0; i < t.length(); ++i)
-            hm.put(t.charAt(i), hm.getOrDefault(t.charAt(i), 0) + 1);
+//        Map<Character, Integer> hm = new HashMap<>();
+        int[] hm = new int[128];
+        Arrays.fill(hm, Integer.MIN_VALUE);
+        for (int i = 0; i < t.length(); ++i){
+            if (hm[t.charAt(i) -'0'] == Integer.MIN_VALUE)
+                hm[t.charAt(i) -'0'] = 1;
+            else
+                ++hm[t.charAt(i) -'0'];
+        }
+
         int cnt = 0, l = 0, min = s.length() + 1;
         String res = "";
         for (int i = 0; i < s.length(); ++i){
             char c = s.charAt(i);
-            if (hm.containsKey(c)){
-                hm.put(c, hm.get(c) - 1);
-                if (hm.get(c) >= 0)
+            if (hm[c - '0'] != Integer.MIN_VALUE){
+                --hm[c - '0'];
+                if (hm[c - '0'] >= 0)
                     ++cnt;
                 while (cnt == t.length()){
                     char lc = s.charAt(l);
-                    if (!hm.containsKey(lc))
+                    if (hm[lc - '0'] == Integer.MIN_VALUE)
                         ++l;
-                    else if (hm.get(lc) < 0){
-                        hm.put(lc, hm.get(lc) + 1);
+                    else if (hm[lc - '0'] < 0){
+                        ++hm[lc - '0'];
                         ++l;
                     }
                     else {
