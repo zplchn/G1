@@ -59,6 +59,10 @@ public class Solution {
         String[] tokens = s.split(",");
         for (String t : tokens)
             System.out.println("[" + t + "]");
+        int[] aa = new int[3];
+        for (int a :aa)
+            a = 22;
+        System.out.println(Arrays.toString(aa));
         /*
         [12] split will check till last char but will ignore after last one!
         [3]
@@ -66,6 +70,9 @@ public class Solution {
         [5]
         [#]
          */
+
+
+
 
 
 
@@ -1758,6 +1765,22 @@ public class Solution {
         return res;
     }
 
+    //91
+    public int numDecodings(String s) {
+        if (s == null || s.length() == 0)
+            return 0;
+
+        int[] dp = new int[2];
+        dp[0] = 1; //note here 0 needs to be = 0
+        int res = dp[1] = s.charAt(0) == '0'? 0 : 1;
+        for (int i = 2; i <= s.length(); ++i){
+            res = (s.charAt(i-1) != '0'? dp[1]: 0) + ((s.charAt(i-2) != '0' && Integer.parseInt(s.substring(i-2, i)) <= 26)? dp[0]: 0);
+            dp[0] = dp[1];
+            dp[1] = res;
+        }
+        return res;
+    }
+
     //92
     public ListNode reverseBetween(ListNode head, int m, int n) {
         if (head == null || head.next == null || m < 1 || n < 1 || m >= n)
@@ -2665,6 +2688,84 @@ public class Solution {
         return res;
     }
 
+    //146
+    class LRUCache {
+        //doubly linked list(key,value) + hashmap(key-> listnode)
+
+        class ListNode{
+            int key, value;
+            ListNode prev, next;
+            ListNode(int k, int v){
+                key = k;
+                value = v;
+                prev = next = null;
+            }
+        }
+
+        private int size;
+        private int capacity;
+        private ListNode head, tail;
+        private Map<Integer, ListNode> hm;
+
+        public LRUCache(int capacity) {
+            this.capacity = capacity;
+            this.head = new ListNode(-1, -1);
+            this.tail = new ListNode(-1, -1);
+            head.next = tail;
+            tail.prev = head;
+            hm = new HashMap<>();
+        }
+
+        private void moveToHead(ListNode ln){
+            if (head.next == ln)
+                return;
+            ln.prev.next = ln.next;
+            ln.next.prev = ln.prev;
+            attachToHead(ln);
+        }
+
+        private void attachToHead(ListNode ln){
+            ln.next = head.next;
+            ln.next.prev = ln;
+            head.next = ln;
+            ln.prev = head;
+        }
+
+        private void removeTail(){
+            if (tail.prev == head)
+                return;
+            hm.remove(tail.prev.key);
+            tail.prev.prev.next = tail;
+            tail.prev = tail.prev.prev;
+            --size;
+        }
+
+        public int get(int key) {
+            if (!hm.containsKey(key))
+                return -1;
+            ListNode ln = hm.get(key);
+            moveToHead(ln);
+            return ln.value;
+        }
+
+        public void set(int key, int value) {
+            if (hm.containsKey(key)){
+                ListNode ln = hm.get(key);
+                ln.value = value;
+                moveToHead(ln);
+            }
+            else {
+                if (this.size == this.capacity){
+                    removeTail();
+                }
+                ListNode ln = new ListNode(key, value);
+                hm.put(key, ln);
+                attachToHead(ln);
+                ++size;
+            }
+        }
+    }
+
     //149
     class Point{
         int x, y;
@@ -3383,6 +3484,40 @@ public class Solution {
         return true;
     }
 
+    //207
+    public boolean canFinish(int numCourses, int[][] prerequisites) {
+        //find cycle in a directed graph -> topological sort and see if every node is traversed.
+        if (numCourses == 0 || prerequisites.length == 0 || prerequisites[0].length == 0)
+            return true;
+        //first we need to recreate the graph, a indegree counter array, a children list array
+        int[] indegree = new int[numCourses];
+        List<Integer>[] children = new List[numCourses]; //java does not support creating generic array, the right side use plain List!!!
+        //for (List<Integer> l: children)
+        //    l = new ArrayList<>(); FOREACH CAN LET U ASSIGN NEW VALUE, BUT DOESNT ACTUALLY ASSIGN AND NOTHING WILL CHANGE
+        for (int i = 0; i < children.length; ++i)
+            children[i] = new ArrayList<>();
+        for (int i = 0; i < prerequisites.length; ++i){
+            ++indegree[prerequisites[i][0]];
+            children[prerequisites[i][1]].add(prerequisites[i][0]);
+        }
+        Queue<Integer> q = new LinkedList<>();
+        int cnt = 0;
+        for (int i = 0; i < indegree.length; ++i){
+            if (indegree[i] == 0)
+                q.offer(i);
+
+        }
+        while (!q.isEmpty()){
+            int x = q.poll();
+            ++cnt;
+            for (int c : children[x]){
+                if (--indegree[c] == 0)
+                    q.offer(c);
+            }
+        }
+        return cnt == numCourses;
+    }
+
     //208
     public class Trie {
         private TrieNode root;
@@ -3450,6 +3585,44 @@ public class Solution {
             ++r; //only add here after try shrinking the left!
         }
         return min > nums.length ? 0 : min;
+    }
+
+    //210
+    public int[] findOrder(int numCourses, int[][] prerequisites) {
+        if (numCourses <= 0 || prerequisites == null)
+            return new int[0];
+
+        int[] indegree = new int[numCourses];
+        List<Integer>[] children = new List[numCourses];
+        for (int i = 0; i < children.length; ++i){
+            children[i] = new ArrayList<>();
+        }
+        for (int i = 0; i < prerequisites.length; ++i){
+            ++indegree[prerequisites[i][0]];
+            children[prerequisites[i][1]].add(prerequisites[i][0]);
+        }
+
+        Queue<Integer> q = new LinkedList<>();
+        for (int i = 0; i < indegree.length; ++i){
+            if (indegree[i] == 0)
+                q.offer(i);
+        }
+        List<Integer> res = new ArrayList<>();
+        while(!q.isEmpty()){
+            int x = q.poll();
+            res.add(x);
+            for (int i : children[x]){
+                if (--indegree[i] == 0)
+                    q.offer(i);
+            }
+        }
+        if (res.size() < numCourses)
+            return new int[0];
+        int[] r = new int[res.size()];
+
+        for (int i = 0; i < res.size(); ++i)
+            r[i] = res.get(i);
+        return r;
     }
 
     //211
@@ -4553,16 +4726,16 @@ public class Solution {
     }
 
     //276
-    public int numWays(int n, int k) {
-        if (n < 1 || k < 1)
-            return 0;
-        if (n <= 2)
-            return k;
-        int first = k, second = k, res = 0;
-        for (int i = 3; i <= n; ++i){
-            res =
-        }
-    }
+//    public int numWays(int n, int k) {
+//        if (n < 1 || k < 1)
+//            return 0;
+//        if (n <= 2)
+//            return k;
+//        int first = k, second = k, res = 0;
+//        for (int i = 3; i <= n; ++i){
+//            res =
+//        }
+//    }
 
     //277
     boolean knows(int a, int b){return true;}
@@ -4768,6 +4941,14 @@ public class Solution {
         }
         return lastLeft;
     }
+
+    //286
+//    public void wallsAndGates(int[][] rooms) {
+//        if (rooms == null || rooms.length == 0 || rooms[0].length == 0)
+//            return;
+//
+//
+//    }
 
     //287
     public int findDuplicate(int[] nums) {
@@ -5182,6 +5363,54 @@ public class Solution {
         }
     }
 
+    //310
+    public List<Integer> findMinHeightTrees(int n, int[][] edges) {
+        //the minimum height trees will be in the middle one or two nodes along the diameter path of the undirected graph.
+        //there will be either 1 or 2 MHT that is the middle 1 or 2 nodes in the middle of longest path
+        List<Integer> res = new ArrayList<>();
+        if (n <= 0 || edges == null || edges.length != n - 1) //may be single node and no edge
+            return res;
+        if (n == 1){
+            res.add(0);
+            return res; // cannot calculate indegree = 1
+        }
+
+        //build graph using indegree and children
+        int[] indegree = new int[n];
+        List<Integer>[] neighbours = new List[n];
+
+        for (int i = 0; i < neighbours.length; ++i)
+            neighbours[i] = new ArrayList<>();
+
+        for (int i = 0; i < edges.length; ++i){
+            ++indegree[edges[i][0]];
+            ++indegree[edges[i][1]];
+            neighbours[edges[i][0]].add(edges[i][1]);
+            neighbours[edges[i][1]].add(edges[i][0]);
+        }
+
+        //peel the leaves and stop when left <= 2
+        Queue<Integer> queue = new LinkedList<>();
+        for (int i = 0; i < indegree.length; ++i){
+            if (indegree[i] == 1)//leaf
+                queue.offer(i);
+        }
+        int left = n;
+        while (left > 2){
+            int size = queue.size();
+            left -= size; //all leaves cannot be the new root
+            while (size-- > 0) {
+                int x = queue.poll();
+                for (int k : neighbours[x]) {
+                    if (--indegree[k] == 1)
+                        queue.offer(k);
+                }
+            }
+        }
+        res.addAll(queue);
+        return res;
+    }
+
     //313
     //public int nthSuperUglyNumber(int n, int[] primes) {
 //        if (n <= 0 || primes == null || primes.length == 0)
@@ -5372,6 +5601,43 @@ public class Solution {
         return total == 0;
     }
 
+    //333
+    //we need each node return a range(min, max) denoting the subtree of it and a flag, size
+    class NodeRtn{
+        int min = Integer.MAX_VALUE; //note here is the inverse, work perfect for null node left always small right always large
+        int max = Integer.MIN_VALUE;
+        boolean isBST;
+        int size;
+    }
+    private int largestBST;
+    public int largestBSTSubtree(TreeNode root) { //sub tree must contain all descendants
+        if (root == null)
+            return 0;
+        largestBSTSubtreeHelper(root);
+        return largestBST;
+    }
+
+    private NodeRtn largestBSTSubtreeHelper(TreeNode root){
+        NodeRtn rtn = new NodeRtn();
+
+        if (root == null){
+            rtn.isBST = true;
+            return rtn;
+        }
+
+        NodeRtn lrtn = largestBSTSubtreeHelper(root.left);
+        NodeRtn rrtn = largestBSTSubtreeHelper(root.right);
+
+        if (lrtn.isBST && rrtn.isBST && root.val > lrtn.max && root.val < rrtn.min){
+            rtn.min = Math.min(lrtn.min, root.val); //left could be null
+            rtn.max = Math.max(rrtn.max, root.val);
+            rtn.isBST = true;
+            rtn.size = lrtn.size + rrtn.size + 1;
+            this.largestBST = Math.max(this.largestBST, rtn.size);
+        }
+        return rtn;
+    }
+
     //337
     public int rob(TreeNode root) {
         if (root == null)
@@ -5551,7 +5817,7 @@ public class Solution {
             hm.put(x, hm.getOrDefault(x, 0) + 1);
         }
         //bucket sort
-        List<Integer>[] bucket = new List[nums.length + 1];
+        List<Integer>[] bucket = new List[nums.length + 1]; //note right side cannot give generics
         for (Map.Entry<Integer, Integer> e : hm.entrySet()){
             if (bucket[e.getValue()] == null)
                 bucket[e.getValue()] = new ArrayList<>();
