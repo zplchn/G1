@@ -155,6 +155,22 @@ public class Solution {
         return s.substring(l, r);
     }
 
+    //6
+    public String convert(String s, int numRows) {
+        if (s == null || s.length() == 0 || numRows <= 1)
+            return s;
+        int zigsize = 2 * numRows - 2;
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < numRows; ++i){
+            for (int j = i; j < s.length(); j += zigsize){
+                sb.append(s.charAt(j));
+                if (i > 0 && i < numRows - 1 && j + zigsize - 2 * i < s.length())
+                    sb.append(s.charAt(j + zigsize - 2 * i));
+            }
+        }
+        return sb.toString();
+    }
+
     //7
     public int reverse(int x) {
         long res = 0;
@@ -532,6 +548,35 @@ public class Solution {
         return dummy.next;
     }
 
+    //25
+    public ListNode reverseKGroup(ListNode head, int k) {
+        if(head == null || head.next == null || k <= 1)
+            return head;
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode left = dummy, cur = head;
+        while (cur != null){
+            int t = k;
+            ListNode right = left;
+            while (right != null && t-- > 0)
+                right = right.next;
+            if (t >= 0)
+                break;
+            ListNode pre = null;
+            while (pre != right){
+                ListNode next = cur.next;
+                cur.next = pre;
+                pre = cur;
+                cur = next;
+            }
+            right = left.next;
+            left.next.next = cur;
+            left.next = pre;
+            left = right;
+        }
+        return dummy.next;
+    }
+
     //26
     public int removeDuplicates(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -639,6 +684,26 @@ public class Solution {
         int t = nums[i];
         nums[i] = nums[j];
         nums[j] = t;
+    }
+
+    //32
+    public int longestValidParentheses(String s) {
+        if (s == null || s.length() == 0)
+            return 0;
+        Deque<Integer> st = new ArrayDeque<>();
+        int max = 0, start = 0;
+        for (int i = 0; i < s.length(); ++i){
+            if (s.charAt(i) == '(')
+                st.push(i);
+            else if (st.isEmpty()){
+                start = i + 1;
+            }
+            else {
+                st.pop();
+                max = Math.max(max, st.isEmpty()? i - start + 1: i - st.peek());
+            }
+        }
+        return max;
     }
 
     //33
@@ -1117,6 +1182,36 @@ public class Solution {
         return max;
     }
 
+    //54
+    public List<Integer> spiralOrder(int[][] matrix) {
+        List<Integer> res = new ArrayList<>();
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0)
+            return res;
+        int m = matrix.length, n = matrix[0].length;
+        int lvl = (Math.min(m, n) >> 1);
+        for (int l = 1; l <= lvl; ++l){
+            for (int j = l-1; j < n - l; ++j)
+                res.add(matrix[l-1][j]);
+            for (int i = l - 1; i < m - l; ++i)
+                res.add(matrix[i][n - l]);
+            for (int j = n - l; j >= l; --j)
+                res.add(matrix[m - l][j]);
+            for (int i = m - l; i >= l; --i)
+                res.add(matrix[i][l-1]);
+        }
+        if (Math.min(m, n) % 2 == 1) {
+            if (m <= n) { //note for m , n both odd, need to output the heart
+                for (int j = lvl; j < n - lvl; ++j)
+                    res.add(matrix[lvl][j]);
+            }
+            else  {
+                for (int i = lvl; i < m - lvl; ++i)
+                    res.add(matrix[i][lvl]);
+            }
+        }
+        return res;
+    }
+
     //55
     public boolean canJump(int[] nums) {
         if (nums == null || nums.length == 0)
@@ -1179,6 +1274,27 @@ public class Solution {
         return tokens[tokens.length - 1].length();
     }
 
+    //59
+    public int[][] generateMatrix(int n) {
+        if (n <= 0)
+            return new int[0][0];
+        int lvl = (n >> 1), cnt = 1;
+        int[][] res = new int[n][n];
+        for (int l = 1; l <= lvl; ++l){
+            for (int j = l - 1; j < n - l; ++j)
+                res[l-1][j] = cnt++;
+            for (int i = l - 1; i < n - l; ++i)
+                res[i][n-l] = cnt++;
+            for (int j = n - l; j >= l; --j)
+                res[n-l][j] = cnt++;
+            for (int i= n - l; i >= l; --i)
+                res[i][l-1] = cnt++;
+        }
+        if (n % 2 == 1)
+            res[lvl][lvl] = cnt;
+        return res;
+    }
+
     //60
     public String getPermutation(int n, int k) {
         if (n <= 0 || k <= 0)
@@ -1200,6 +1316,31 @@ public class Solution {
             nums.remove(index);
         }
         return sb.toString();
+    }
+
+    //61
+    public ListNode rotateRight(ListNode head, int k) {
+        if (head == null ||head.next == null || k <= 0)
+            return head;
+        ListNode cur = head;
+        int len = 0;
+        while (cur != null){
+            ++len;
+            cur = cur.next;
+        }
+        k %= len;
+        ListNode right = head;
+        while (k-- > 0)
+            right = right.next;
+        cur = head;
+        while (right != null && right.next != null){
+            right = right.next;
+            cur = cur.next;
+        }
+        right.next = head;
+        ListNode res = cur.next;
+        cur.next = null;
+        return res;
     }
 
     //62
@@ -2200,6 +2341,25 @@ public class Solution {
         return res;
     }
 
+    //119
+    public List<Integer> getRow(int rowIndex) {
+        List<Integer> res = new ArrayList<>();
+        if (rowIndex < 0) //0 is [1]
+            return res;
+        res.add(1);
+
+        while (rowIndex-- > 0){
+            int tmp = 0, pre = 1;
+            res.add(0);
+            for (int i = 1; i < res.size(); ++i){
+                tmp = res.get(i);
+                res.set(i, res.get(i) + pre);
+                pre = tmp;
+            }
+        }
+        return res;
+    }
+
     //120
     public int minimumTotal(List<List<Integer>> tri) {
         if (tri == null || tri.size() == 0 || tri.get(0).size() == 0)
@@ -2457,6 +2617,38 @@ public class Solution {
             }
         }
         return dp1[dp1.length - 1] - 1;
+    }
+
+    //133
+    class UndirectedGraphNode{
+        int label;
+        List<UndirectedGraphNode> neighbors;
+
+        UndirectedGraphNode(int x){
+            label = x;
+            neighbors = new ArrayList<>();
+        }
+    }
+    public UndirectedGraphNode cloneGraph(UndirectedGraphNode node) {
+        if (node == null)
+            return node;
+        Map<UndirectedGraphNode, UndirectedGraphNode> hm = new HashMap<>();
+        UndirectedGraphNode newNode = new UndirectedGraphNode(node.label);
+        hm.put(node, newNode);
+        cloneGraphHelper(node, newNode, hm);
+        return newNode;
+    }
+
+    private void cloneGraphHelper(UndirectedGraphNode node, UndirectedGraphNode newNode, Map<UndirectedGraphNode, UndirectedGraphNode> hm){
+        for (UndirectedGraphNode un : node.neighbors){
+            if (!hm.containsKey(un)){
+                hm.put(un, new UndirectedGraphNode(un.label));
+                newNode.neighbors.add(hm.get(un));
+                cloneGraphHelper(un, hm.get(un), hm);
+            }
+            else
+                newNode.neighbors.add(hm.get(un));
+        }
     }
 
     //134
@@ -3310,6 +3502,24 @@ public class Solution {
         return res;
     }
 
+    //189
+    public void rotate(int[] nums, int k) {
+        if (nums == null || nums.length == 0 || k <= 0)
+            return;
+        k %= nums.length;
+        rotateHelper(nums, 0, nums.length - 1);
+        rotateHelper(nums, 0, k - 1);
+        rotateHelper(nums, k, nums.length - 1);
+    }
+
+    private void rotateHelper(int[] nums, int i, int j){
+        while (i < j){
+            int t = nums[i];
+            nums[i] = nums[j];
+            nums[j] = t;
+        }
+    }
+
     //190
     public int reverseBits(int n) {
         int res = 0;
@@ -3799,6 +4009,23 @@ public class Solution {
             if (hm.containsKey(nums[i]) && (i - hm.get(nums[i]) <= k))
                 return true;
             hm.put(nums[i], i);
+        }
+        return false;
+    }
+
+    //220
+    public boolean containsNearbyAlmostDuplicate(int[] nums, int k, int t) {
+        if (nums == null || nums.length < 2 || k < 1)
+            return false;
+        //need to keep an window of size k and find nearby element within t, so storing the window in a treeset
+        TreeSet<Integer> ts = new TreeSet<>();
+        for (int i = 0; i < nums.length; ++i){
+            Integer floor = ts.floor(nums[i]);
+            Integer ceiling = ts.ceiling(nums[i]);
+            if ((floor != null && nums[i] - floor <= t) || (ceiling != null && ceiling - nums[i] <= t))
+                return true;
+            if (ts.size() == k + 1)
+                ts.remove(nums[i - k]);
         }
         return false;
     }
@@ -4500,6 +4727,40 @@ public class Solution {
         return res;
     }
 
+    //261
+    public boolean validTree(int n, int[][] edges) {
+        //connected, exist topological order no cycle BFS
+        if (n <= 0 || edges == null || edges.length != n - 1)
+            return false;
+        if (n == 1 && edges.length == 0)
+            return true; //sigle point need to handle seperately
+        int cnt = 0;
+        List<Integer>[] children = new List[n];
+        for (int i = 0; i < children.length; ++i)
+            children[i] = new ArrayList<>();
+        int[] degree = new int[n];
+        for (int[] edge : edges){
+            ++degree[edge[0]];
+            ++degree[edge[1]];
+            children[edge[0]].add(edge[1]);
+            children[edge[1]].add(edge[0]);
+        }
+        Queue<Integer> queue = new LinkedList<>();
+        for (int i = 0; i < degree.length; ++i){
+            if (degree[i] == 1)
+                queue.offer(i);
+        }
+        while (!queue.isEmpty()){
+            int x = queue.poll();
+            ++cnt;
+            for (int c : children[x]){
+                if (--degree[c] == 1)
+                    queue.offer(c);
+            }
+        }
+        return cnt == n;
+    }
+
 
     //263
     public boolean isUgly(int num) {
@@ -4723,6 +4984,39 @@ public class Solution {
         }
         else
             return less20[num / 100] + " Hundred" + (num % 100 == 0? "": " " + numberToWordsHelper(num % 100));
+    }
+
+    //274
+    public int hIndex(int[] citations) {
+        if (citations == null || citations.length == 0)
+            return 0;
+        Arrays.sort(citations);
+        //                   1
+        //               1
+        //<---------------------- x: greater than myself y:absolute citations, now find the crossing when y drops below x
+        //           1
+        //         1
+        //from right to left, x axis - total#greater than me, y - citations[i], y start >> x -> y=x -> y < x
+        int i = citations.length -1;
+        while (i >= 0 && citations[i] >= (citations.length - i))
+            --i;
+        return citations.length - i - 1;
+    }
+
+    //275
+    public int hIndex2(int[] citations) {
+        //this time citations is already sorted
+        if (citations == null || citations.length == 0)
+            return 0;
+        int l = 0, r = citations.length - 1,m;
+        while (l <= r){
+            m = l + ((r - l) >> 1);
+            if (citations[m] < citations.length - m)
+                l = m + 1;
+            else
+                r = m - 1;
+        }
+        return citations.length - l;
     }
 
     //276
@@ -5104,6 +5398,35 @@ public class Solution {
         //8 no matter how many we remove, competitor become 5,6,7 they win. so every mod 4 we lose
     }
 
+    //293
+    public List<String> generatePossibleNextMoves(String s) {
+        List<String> res = new ArrayList<>();
+        if (s == null || s.length() < 2)
+            return res;
+        int i = 0;
+        while ((i = s.indexOf("++",i)) >= 0){
+            StringBuilder sb = new StringBuilder(s);
+            sb.replace(i, i+2, "--");
+            res.add(sb.toString());
+            ++i;
+        }
+        return res;
+    }
+
+    //294
+    public boolean canWin(String s) {
+        if (s == null || s.length() < 2)
+            return false;
+        int i = 0;
+        while ((i = s.indexOf("++", i)) >= 0){
+            if (!canWin(s.substring(0, i) + "-" + s.substring(i+2))) //note we can just replace with single "-" instead of "--" for even more
+                return true;
+            ++i;
+        }
+
+        return false;
+    }
+
     //295
     public class MedianFinder {
         Queue<Integer> minq = new PriorityQueue<>();
@@ -5469,6 +5792,61 @@ public class Solution {
         return res;
     }
 
+    //317
+    public int shortestDistance(int[][] grid) {
+        if (grid == null || grid.length == 0 || grid[0].length == 0)
+            return 0;
+        //bfs start off every house, need every empty spot reachable, so maintain one total dist array, one count array
+        int[][] count = new int[grid.length][grid[0].length];
+        int[][] dist = new int[grid.length][grid[0].length];
+        int[][] offset = {{-1, 0}, {1, 0}, {0,-1}, {0,1}};
+        int totalHouse = 0;
+        for (int i = 0; i < grid.length; ++i){
+            for (int j = 0; j < grid[0].length; ++j){
+                if (grid[i][j] == 1){
+                    ++totalHouse;
+
+                    int lvl = 1, cur =1, next = 0;
+                    Queue<int[]> queue = new LinkedList<>();
+                    queue.offer(new int[]{i, j});
+                    boolean[][] visited = new boolean[grid.length][grid[0].length];
+                    while (!queue.isEmpty()){
+                        int[] p = queue.poll();
+
+                        //mark first, incluing set the level than put in queue
+                        for (int k = 0; k < offset.length; ++k){
+                            int x = p[0] + offset[k][0], y = p[1] + offset[k][1];
+
+                            if (x >= 0 && x < grid.length && y >= 0 && y < grid[0].length && !visited[x][y] && grid[x][y] == 0){
+                                visited[x][y] = true;
+                                count[x][y] += 1;
+                                dist[x][y] += lvl;
+                                queue.offer(new int[]{x, y});
+                                ++next;
+                            }
+                        }
+                        if(--cur == 0){ //bfs must track layer to be count per layer
+                            cur = next;
+                            next = 0;
+                            ++lvl;
+                        }
+                    }
+                }
+            }
+        }
+
+        //find min sum dist
+        int min = Integer.MAX_VALUE;
+        for (int i = 0; i < grid.length; ++i){
+            for (int j = 0; j < grid[0].length; ++j){
+                if (grid[i][j] == 0 && count[i][j] == totalHouse){
+                    min = Math.min(min, dist[i][j]);
+                }
+            }
+        }
+        return min == Integer.MAX_VALUE? -1: min;
+    }
+
     //318
     public int maxProduct(String[] words) {
         //check two string has common letters - use bit array, in reality, use int instead, =>32 bits
@@ -5516,12 +5894,42 @@ public class Solution {
     }
 
     //323
-//    public int countComponents(int n, int[][] edges) {
-//        if (n < 0 || edges == null || edges.length == 0 || edges[0].length != 2)
-//            return 0;
-//        int res = 0;
-//
-//    }
+    public int countComponents(int n, int[][] edges) {
+        if (n <= 0 || edges == null || edges.length == 0 || edges[0].length != 2)
+            return n;
+        //construct the graph
+        List<Integer>[] children = new List[n];
+        for (int[] edge : edges){
+            if (children[edge[0]] == null)
+                children[edge[0]] = new ArrayList<Integer>();
+            if (children[edge[1]] == null)
+                children[edge[1]] = new ArrayList<Integer>();
+            children[edge[0]].add(edge[1]);
+            children[edge[1]].add(edge[0]);
+        }
+
+        //Mask the visited
+        BitSet visited = new BitSet(n);
+        int cnt = 0;
+
+        for (int i = 0; i < n; ++i){
+            if (!visited.get(i)){
+                countComponentsHelper(children, i, visited);
+                ++cnt;
+            }
+        }
+        return cnt;
+    }
+
+    private void countComponentsHelper(List<Integer>[] children, int i, BitSet visited){
+        visited.set(i);
+        if (children[i] != null){
+            for (int j = 0; j < children[i].size(); ++j){
+                if (!visited.get(children[i].get(j)))
+                    countComponentsHelper(children, children[i].get(j), visited);
+            }
+        }
+    }
 
     //326
     public boolean isPowerOfThree(int n) {
@@ -5601,6 +6009,59 @@ public class Solution {
         return total == 0;
     }
 
+    //332
+    public List<String> findItinerary(String[][] tickets) {
+        List<String> res = new ArrayList<>();
+        if (tickets == null || tickets.length == 0 ||tickets[0].length == 0)
+            return res;
+        //this question is essentially find euler path in a directed graph.
+        /*
+        a directed graph each node has an indegree and outdegree, and will have 0 or 2 nodes with indegree != outdegree
+        such node will be a src when out>in and a sink when in > out
+
+                        JFK
+                      /
+                    SFO ---------> SJC
+                  /     \
+                 LAX ->   SAN
+
+
+        HERE, JFK AND SJC ARE the odd nodes, and a path when traverse every single EDGE once and only once is a Euler path
+        Note, path like SJC are call a bridge, meaning one way deadend, such route will be chosen at the end, we always go others first
+
+        The algorithm to find a euler path is called fluery's algorithm
+        for each node, we loop it's neighbours
+            while has neighbours
+                take a neighbour and delete it from my neighbours
+                    continue with this new neighbours
+            when no available neighbours, we inserted to the head the path
+
+        So the trick is, insert into head, it's okay we cross bridge first!!!
+        So as long as we come to SJC and SJC has no available neighbours, we inserted to the head of path, and it will always be
+        the last one, so it's all set.
+        then we go the circle and second time come to SFO, it has no neighbours so needs to be inserted before SJC and then backwards
+        to SAN and LAX, etc.
+         */
+
+        //first we create the graph, since it needs minimum lex order, we need the neighbours sorted
+        Map<String, Queue<String>> hm = new HashMap<>();
+        for (String[] pair: tickets){
+            hm.putIfAbsent(pair[0], new PriorityQueue<>());//if not exist then put the (key, value)
+            hm.get(pair[0]).offer(pair[1]);
+        }
+        findItineraryHelper("JFK", res, hm);
+        Collections.reverse(res);
+        return res;
+    }
+
+    private void findItineraryHelper(String dept, List<String> res, Map<String, Queue<String>> hm){
+        while (hm.containsKey(dept) && !hm.get(dept).isEmpty()){
+            String child = hm.get(dept).poll();
+            findItineraryHelper(child, res, hm);
+        }
+        res.add(dept); //sink will always be the first
+    }
+
     //333
     //we need each node return a range(min, max) denoting the subtree of it and a flag, size
     class NodeRtn{
@@ -5636,6 +6097,22 @@ public class Solution {
             this.largestBST = Math.max(this.largestBST, rtn.size);
         }
         return rtn;
+    }
+
+    //334
+    public boolean increasingTriplet(int[] nums) {
+        if (nums == null || nums.length < 3)
+            return false;
+        int min1 = nums[0], min2 = Integer.MAX_VALUE;
+        for (int i = 1; i < nums.length; ++i){
+            if (nums[i] < min1)
+                min1 = nums[i];
+            else if (nums[i] < min2)
+                min2 = nums[i];
+            else
+                return true;
+        }
+        return false;
     }
 
     //337
@@ -5942,6 +6419,73 @@ public class Solution {
         return cnt; //and return the total to the parent
     }
 
+    //352
+//    public class SummaryRanges {
+//
+//        /** Initialize your data structure here. */
+//        public SummaryRanges() {
+//
+//        }
+//
+//        public void addNum(int val) {
+//
+//        }
+//
+//        public List<Interval> getIntervals() {
+//
+//        }
+//    }
+
+    //354
+    public int maxEnvelopes(int[][] envelopes) {
+        if (envelopes == null || envelopes.length == 0 || envelopes[0].length != 2)
+            return 0;
+        //(width, height) sort according to width, then this problem becomes to find the LIS subsequence of height 2d->1d , same as 300 LIS
+        Arrays.sort(envelopes, (a1, a2) -> a1[0] == a2[0]? a2[1] - a1[1]: a1[0] - a2[0]); //Comparator<int[]>
+        //here when width is the same , put the higher height before lower, so the LIS will use the heigher, otherwise (2, 6) (2, 8) will be counted but should not
+        List<Integer> tails = new ArrayList<>();
+        tails.add(envelopes[0][1]);
+        for (int i = 1; i < envelopes.length; ++i){
+            int y = envelopes[i][1];
+            int l = 0, r = tails.size() - 1, m;
+            while (l <= r){
+                m = l + ((r - l) >> 1);
+                if (y > tails.get(m))
+                    l = m + 1;
+                else
+                    r = m - 1;
+            }
+            if (l == tails.size())
+                tails.add(y);
+            else
+                tails.set(l, y);
+        }
+        return tails.size();
+    }
+
+    //356
+    public boolean isReflected(int[][] points) {
+        if (points == null||points.length == 0) //this treat empty and single points to be valid cases
+            return true;
+        //store map of x -> set(y), find every x check if min+max-x exist and y matches
+        //Map<Integer, Set<Integer>> hm = new HashMap<>();
+        Set<String> hs = new HashSet<>();
+        int min = points[0][0], max = points[0][0];
+        for (int[] p : points){
+            hs.add(p[0] + "#" + p[1]); //this technical should be used when java does not have pair class, use string is faster than Map<x, Set<>> kindof
+            min = Math.min(min, p[0]);
+            max = Math.max(max, p[0]);
+        }
+        long t = min + max;
+        for (int [] p : points){
+            int ref = (int)(t - p[0]);
+            if (!hs.contains(ref + "#" + p[1]))
+                return false;
+        }
+        return true;
+
+    }
+
     //359
     public class Logger {
         Map<String, Integer> hm;
@@ -5965,6 +6509,44 @@ public class Solution {
             }
             return false;
         }
+    }
+
+    //360
+    public int[] sortTransformedArray(int[] nums, int a, int b, int c) {
+        //ax2 + bx + c is a parabola, when a> 0 open up, the middle are smaller, otherwise vice versa, so we can two pointer and output are already sorted o(n)
+        if (nums == null || nums.length == 0)
+            return new int[0];
+        int i = a >= 0? nums.length - 1: 0;
+        int l = 0, r = nums.length - 1;
+        int[] res = new int[nums.length];
+        while (l <= r){
+            int lv = sortTransformedArrayHelper(nums[l], a, b, c);
+            int rv = sortTransformedArrayHelper(nums[r], a, b, c);
+            if (a >= 0) {
+                if (lv > rv) {
+                    res[i--] = lv;
+                    ++l;
+                } else {
+                    res[i--] = rv;
+                    --r;
+                }
+            }
+            else {
+                if (lv > rv){
+                    res[i++] = rv;
+                    --r;
+                }
+                else {
+                    res[i++] = lv;
+                    ++l;
+                }
+            }
+        }
+        return res;
+    }
+
+    private int sortTransformedArrayHelper(int x, int a, int b, int c){
+        return a * x * x + b * x + c;
     }
 
     //361
@@ -6180,6 +6762,27 @@ public class Solution {
         return getSum(add, carry);
     }
 
+    //373
+    public List<int[]> kSmallestPairs(int[] nums1, int[] nums2, int k) {
+        List<int[]> res = new ArrayList<int[]>();
+        if (nums1 == null || nums1.length == 0 || nums2 == null || nums2.length == 0 || k <= 0)
+            return res;
+        //kth smallest use MAX HEAP!!!
+        Queue<int[]> pq = new PriorityQueue<>(k, (a1, a2)->a2[0] + a2[1] - a1[0] - a1[1]); //PriorityQueue(initial_capacity, Comparator)
+        for (int i = 0; i < Math.min(k, nums1.length); ++i){
+            for (int j = 0; j < Math.min(k, nums2.length); ++j){
+                if (pq.size() < k)
+                    pq.offer(new int[]{nums1[i], nums2[j]}); //Look at how create and initialize an array
+                else if (nums1[i] + nums2[j] < pq.peek()[0] + pq.peek()[1]){
+                    pq.poll();
+                    pq.offer(new int[]{nums1[i], nums2[j]});
+                }
+            }
+        }
+        res.addAll(pq);
+        return res;
+    }
+
     //374
     int guess(int num){return 0;}
 
@@ -6304,6 +6907,35 @@ public class Solution {
         return true;
     }
 
+    //384
+    public class Solution1 {
+        private int[] nums;
+        private int[] lnums;
+        private Random random;
+        public Solution1(int[] nums) {
+            this.nums = nums;
+            this.lnums = Arrays.copyOf(nums, nums.length); //Here Arrays.copyOf(int[] a, int newLen) return a deep copy of Array!
+            random = new Random();
+        }
+
+        /** Resets the array to its original configuration and return it. */
+        public int[] reset() {
+            this.lnums = Arrays.copyOf(nums, nums.length);
+            return this.lnums;
+        }
+
+        /** Returns a random shuffling of the array. */
+        public int[] shuffle() {
+            for (int i = 1; i < lnums.length; ++i){
+                int rdm = random.nextInt(i+1); //note here must include itself, like (1,2) if not include 2 will always be (2,1)
+                int t = lnums[rdm];
+                lnums[rdm] = lnums[i];
+                lnums[i] = t;
+            }
+            return lnums;
+        }
+    }
+
     //386
     public List<Integer> lexicalOrder(int n) {
         List<Integer> res = new ArrayList<>();
@@ -6337,6 +6969,31 @@ public class Solution {
                 return i;
         }
         return -1;
+    }
+
+    //388
+    public int lengthLongestPath(String input) {
+        //use stack to store the length of sum of length of dir, stack size will be the current depth. when meet a file, get the count and update max
+        if (input == null || input.length() == 0)
+            return 0;
+        String[] tokens = input.split("\\n");
+        Deque<Integer> st = new ArrayDeque<>();
+        int max = 0;
+
+        for (String s : tokens){
+            int depth = s.lastIndexOf('\t') + 1; //note \t or \n is a ascii char !!! string.lastIndexOf(char/string) return the start index from the right, -1 if not found
+            //adjust level
+            while (depth < st.size())
+                st.pop();
+            int len = s.substring(depth).length();
+
+            if (s.indexOf('.') != -1)//it's a file
+                max = Math.max(max, len + (st.isEmpty()? 0: st.peek() + st.size()));
+            else {//it's a dir
+                st.push(len + (st.isEmpty()? 0 : st.peek())); //cumulative len of dir
+            }
+        }
+        return max;
     }
 
 
@@ -6390,6 +7047,59 @@ public class Solution {
             }
         }
         return cnt == 0; //note if there are missing bytes
+    }
+
+    //394
+    public String decodeString(String s) {
+        if (s == null || s.length() == 0)
+            return "";
+        //when meet [, push stack for both number and string, when ] pop both
+        Deque<Integer> stNum = new ArrayDeque<>();
+        Deque<StringBuilder> stStr = new ArrayDeque<>();
+        StringBuilder sb = new StringBuilder();
+        int num = 0;
+        for (int i = 0; i < s.length(); ++i){
+            char c = s.charAt(i);
+
+            if (Character.isDigit(c)){
+                num = num * 10 + c - '0';
+            }
+            else if (c == '['){
+                stNum.push(num);
+                num = 0;
+                stStr.push(sb);
+                sb = new StringBuilder();
+            }
+            else if (c == ']'){
+                StringBuilder pre = stStr.pop();
+                int times = stNum.pop();
+                while (times-- > 0)
+                    pre.append(sb);
+                sb = pre;
+            }
+            else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
+    }
+
+    //396
+    public int maxRotateFunction(int[] A) {
+        if (A == null || A.length == 0)
+            return 0;
+        // fx+1 = fx + sum - A[n-i]
+        int sum = 0, t = 0;
+        for (int i = 0; i < A.length; ++i) {
+            sum += A[i];
+            t += i * A[i];
+        }
+        int max = t;
+        for (int i = A.length - 1; i > 0; --i){
+            t = t + sum - A.length * A[i];
+            max = Math.max(max, t);
+        }
+        return max;
     }
 
     //404
