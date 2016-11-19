@@ -47,29 +47,19 @@ public class Solution {
 
     public static void main(String[] args){
         Solution st = new Solution();
-        double x = 0;
-        int v = 3;
-        x += v;
-        int n = -3;
-        n %= 10;
-        System.out.println(n);
-        System.out.println("3".substring(0, 0)); //empty string
-        System.out.println(x);
-        String s = "12,3,#,5,#,";
-        String[] tokens = s.split(",");
-        for (String t : tokens)
-            System.out.println("[" + t + "]");
-        int[] aa = new int[3];
-        for (int a :aa)
-            a = 22;
-        System.out.println(Arrays.toString(aa));
-        /*
-        [12] split will check till last char but will ignore after last one!
-        [3]
-        [#]
-        [5]
-        [#]
-         */
+        String m1 = "a", m2 = "a*?";
+        System.out.println(st.isMatch(m1, m2));
+        long ts = System.currentTimeMillis();
+        System.out.println(Long.numberOfLeadingZeros(ts)); //23 leading 0 in the long
+        System.out.println(Long.toBinaryString(ts)); //41bits
+
+        Map<Integer,List<Integer>> hm = new HashMap<>();
+
+        //System.out.println(hm.get(1).get(0));
+        StringBuilder sb = new StringBuilder();
+        sb.append(-3);
+        System.out.println(sb);
+
 
 
 
@@ -77,6 +67,7 @@ public class Solution {
 
 
     }
+
 
     //1
     public int[] twoSum1(int[] nums, int target) {
@@ -131,6 +122,40 @@ public class Solution {
         }
         max = Math.max(max, s.length() - l);
         return max;
+    }
+
+    //4
+    public double findMedianSortedArrays(int[] nums1, int[] nums2) {
+        if (nums1 == null || nums2 == null)
+            return 0;
+        int len = nums1.length + nums2.length;
+        if ((len & 1) == 1)
+            return findMedianHelper(nums1, 0, nums1.length - 1, nums2, 0, nums2.length - 1, len/2 + 1);
+        else
+            return (findMedianHelper(nums1, 0, nums1.length - 1, nums2, 0, nums2.length - 1, len/2) +
+                    findMedianHelper(nums1, 0, nums1.length - 1, nums2, 0, nums2.length - 1, len/2 + 1)) / 2.0;
+    }
+
+    private int findMedianHelper(int[] nums1, int ai, int aj, int[] nums2, int bi, int bj, int k){ //K IS 1- BASED
+        //ending condition: 1. we cut in half, one array could be len = 0; 2. if k ==1, we return the smaller of the two heads
+        int la = aj - ai + 1;
+        int lb = bj - bi + 1;
+        if (la > lb) //make sure a is always shorter
+            return findMedianHelper(nums2, bi, bj, nums1, ai, aj, k);
+        if (la == 0)
+            return nums2[bi + k - 1];
+        if (k == 1)
+            return Math.min(nums1[ai], nums2[bi]);
+
+        // pos of k/2
+        int offA = Math.min(la, k/2);
+        int offB = k - offA;
+        if (nums1[ai + offA - 1] == nums2[bi + offB - 1])
+            return nums1[ai + offA - 1];
+        else if (nums1[ai + offA - 1] < nums2[bi + offB - 1])
+            return findMedianHelper(nums1, ai + offA, aj, nums2, bi, bi + offB - 1, k - offA);
+        else
+            return findMedianHelper(nums1, ai, ai + offA - 1, nums2, bi + offB, bj, k - offB);
     }
 
     //5
@@ -617,6 +642,14 @@ public class Solution {
         return -1;
     }
 
+    //29
+//    public int divide(int dividend, int divisor) {
+//        //here is the theory, any int can be expressed as a sum of power of 2. k * 2^k + (k-1) * 2 ^(k-1) + ... + k0 * 2^0. All k are either 0 or 1
+//
+//
+//
+//    }
+
     //30
     public List<Integer> findSubstring(String s, String[] words) {
         List<Integer> res = new ArrayList<>();
@@ -1005,6 +1038,29 @@ public class Solution {
         if (sb.charAt(0) == '0')
             return sb.substring(1);
         return sb.toString();
+    }
+
+    //44
+    public boolean isMatch(String s, String p) {
+        // ? - 1 char;  * 0-inf chars
+        if (s == null || p == null) {
+            return false;
+        }
+        boolean[][] dp = new boolean[s.length() + 1][p.length() + 1];
+        dp[0][0] = true; //dont forget this. this is the baseline
+        for (int j = 1; j < dp[0].length; ++j) {
+            dp[0][j] = p.charAt(j - 1) == '*' && dp[0][j - 1];
+        }
+        for (int i = 1; i < dp.length; ++i) {
+            for (int j = 1; j < dp[0].length; ++j) {
+                if (s.charAt(i - 1) == p.charAt(j - 1) || p.charAt(j - 1) == '?') {
+                    dp[i][j] = dp[i - 1][j - 1];
+                } else if (p.charAt(j - 1) == '*') {//make sure dp index and string index are correctly handled
+                    dp[i][j] = dp[i - 1][j] || dp[i][j - 1];
+                }
+            }
+        }
+        return dp[dp.length - 1][dp[0].length - 1];
     }
 
     //45
@@ -1834,6 +1890,36 @@ public class Solution {
         return max;
     }
 
+    //85
+    public int maximalRectangle(char[][] matrix) {
+        //at each level do largest histogram
+        if (matrix == null || matrix.length ==0 || matrix[0].length == 0)
+            return 0;
+        int[] height = new int[matrix[0].length];
+        int res = 0;
+        for (char[] m : matrix){
+            for (int j = 0; j < m.length; ++j){
+                height[j] = (m[j] == '1'? height[j] + 1: 0); //if 0 need to clear height!!!
+            }
+            //now check largest histogram of height
+            res = Math.max(res, maximalRectangleHelper(height));
+        }
+        return res;
+    }
+
+    private int maximalRectangleHelper(int[] height){
+        int res = 0;
+        Deque<Integer> st = new ArrayDeque<>(); //store indices of acending subsequence
+        for (int i = 0; i <= height.length; ++i){
+            int cur = i == height.length? -1: height[i];
+            while (!st.isEmpty() && height[st.peek()] > cur){//note here the trick use cur and assign - 1 when right bank
+                res = Math.max(res, height[st.pop()]*(st.isEmpty()? i:(i - st.peek() - 1))); //pop first!!
+            }
+            st.push(i);
+        }
+        return res;
+    }
+
     //86
     public ListNode partition(ListNode head, int x) {
         if (head == null)
@@ -2048,6 +2134,29 @@ public class Solution {
         if (root.val <=min || root.val >= max)
             return false;
         return isValidBSTHelper(root.left, min, root.val) && isValidBSTHelper(root.right, root.val, max);
+    }
+
+    //99
+    public void recoverTree(TreeNode root) {
+        if (root == null)
+            return;
+        recoverTreeHelper(root);
+        int x = r1.val;
+        r1.val = r2.val;
+        r2.val = x;
+    }
+    private TreeNode recoverPre, r1, r2;
+    private void recoverTreeHelper(TreeNode root){
+        if (root == null)
+            return;
+        recoverTreeHelper(root.left);
+        if (recoverPre != null && root.val <= recoverPre.val){
+            if (r1 == null)
+                r1 = recoverPre;
+            r2 = root;
+        }
+        recoverPre = root;
+        recoverTreeHelper(root.right);
     }
 
     //102
@@ -2323,6 +2432,58 @@ public class Solution {
         flatten(t);
     }
 
+    //115
+    public int numDistinct(String s, String t) {
+        if (s == null || t == null)
+            return 0;
+        int[][] dp = new int[t.length()+1][s.length()+1];
+        Arrays.fill(dp[0], 1);
+        for (int i = 1; i < dp.length; ++i){
+            for (int j = 1; j < dp[0].length; ++j){
+                dp[i][j] = dp[i][j-1];
+                if (t.charAt(i-1) == s.charAt(j-1))
+                    dp[i][j] += dp[i-1][j-1];
+            }
+        }
+        return dp[dp.length - 1][dp[0].length - 1];
+    }
+
+    //116
+    public void connect(TreeLinkNode root) {
+        if (root == null || (root.left == null && root.right == null))
+            return;
+
+        root.left.next = root.right;
+        root.right.next = root.next!= null? root.next.left: null;
+        connect(root.left);
+        connect(root.right);
+    }
+
+    //117
+    class TreeLinkNode {
+        int val;
+        TreeLinkNode left, right, next;
+        public TreeLinkNode(int x){val = x;}
+    }
+
+    public void connect2(TreeLinkNode root) {
+        if (root == null)
+            return;
+        //find next valid
+        TreeLinkNode nv = root.next;
+        while (nv != null && nv.left == null && nv.right == null){
+            nv = nv.next;
+        }
+        if (nv != null)
+            nv = nv.left != null? nv.left: nv.right;
+        if (root.right != null)
+            root.right.next = nv;
+        if (root.left != null)
+            root.left.next = root.right != null? root.right: nv;
+        connect(root.right);
+        connect(root.left);
+    }
+
     //118
     public List<List<Integer>> generate(int numRows) {
         List<List<Integer>> res = new ArrayList<>();
@@ -2384,42 +2545,6 @@ public class Solution {
         return max;
     }
 
-    //116
-    public void connect(TreeLinkNode root) {
-        if (root == null || (root.left == null && root.right == null))
-            return;
-
-        root.left.next = root.right;
-        root.right.next = root.next!= null? root.next.left: null;
-        connect(root.left);
-        connect(root.right);
-    }
-
-    //117
-    class TreeLinkNode {
-        int val;
-        TreeLinkNode left, right, next;
-        public TreeLinkNode(int x){val = x;}
-    }
-
-    public void connect2(TreeLinkNode root) {
-        if (root == null)
-            return;
-        //find next valid
-        TreeLinkNode nv = root.next;
-        while (nv != null && nv.left == null && nv.right == null){
-            nv = nv.next;
-        }
-        if (nv != null)
-            nv = nv.left != null? nv.left: nv.right;
-        if (root.right != null)
-            root.right.next = nv;
-        if (root.left != null)
-            root.left.next = root.right != null? root.right: nv;
-        connect(root.right);
-        connect(root.left);
-    }
-
     //122
     public int maxProfit2(int[] prices) {
         if (prices == null || prices.length < 2)
@@ -2428,6 +2553,24 @@ public class Solution {
         for (int i = 1; i < prices.length; ++i){
             if (prices[i] > prices[i-1])
                 res += prices[i] - prices[i-1];
+        }
+        return res;
+    }
+
+    //123
+    public int maxProfit3(int[] prices) {
+        if (prices == null || prices.length < 2)
+            return 0;
+        int[] dp = new int[prices.length];
+        int lmin = prices[0], lmax = prices[prices.length - 1], res = 0;
+        for (int i = 1; i < prices.length; ++i){
+            dp[i] = Math.max(dp[i-1], prices[i] - lmin);
+            lmin = Math.min(lmin, prices[i]);
+        }
+        res = dp[dp.length - 1]; //maybe should just buy once!
+        for (int i = prices.length - 2; i >=0; --i){
+            res = Math.max(res, dp[i] + Math.max(0, lmax - prices[i]));
+            lmax = Math.max(lmax, prices[i]);
         }
         return res;
     }
@@ -2466,6 +2609,51 @@ public class Solution {
                 return false;
         }
         return true;
+    }
+
+    //126
+//    public List<List<String>> findLadders(String beginWord, String endWord, Set<String> wordList) {
+//        List<List<String>> res = new ArrayList<>();
+//        if (beginWord == null || endWord == null || beginWord.length() != endWord.length() || wordList == null || wordList.size() == 0)
+//            return res;
+//
+//
+//    }
+
+    //127
+    public int ladderLength(String beginWord, String endWord, Set<String> wordList) {
+        //set up graph on wordList, bfs from begin to endword
+        if (beginWord == null || endWord == null || wordList == null || wordList.size() == 0 || beginWord.length() != endWord.length())
+            return 0;
+        Queue<String> queue = new LinkedList<>();
+        Set<String> visited = new HashSet<>();
+        queue.offer(beginWord);
+        visited.add(beginWord);
+        int cur = 1, next = 0, len = 1;
+        while (!queue.isEmpty()){
+            String s = queue.poll();
+            for (int i = 0; i < s.length(); ++i){
+                char[] ca = s.toCharArray(); // this needs reset every time
+                for (char c = 'a'; c <= 'z'; ++c){
+                    ca[i] = c;
+                    String ss = new String(ca);
+                    if (ss.equals(endWord))
+                        return len + 1;
+                    if (wordList.contains(ss) && !visited.contains(ss)){
+                        visited.add(ss);
+                        queue.offer(ss);
+                        ++next;
+                    }
+                }
+            }
+            if (--cur == 0){
+                cur = next;
+                next = 0;
+                ++len;
+            }
+        }
+        return 0; //not found should return 0
+
     }
 
     //128
@@ -2747,7 +2935,7 @@ public class Solution {
     }
 
     //139
-    public boolean wordBreak(String s, Set<String> wordDict) {
+    public boolean wordBreak1(String s, Set<String> wordDict) {
         if (s == null || wordDict == null || wordDict.size() == 0)
             return false;
         boolean[] dp = new boolean[s.length()+1];
@@ -2761,6 +2949,27 @@ public class Solution {
             }
         }
         return dp[dp.length - 1];
+    }
+
+    //140
+    public List<String> wordBreak(String s, Set<String> wordDict) {
+        List<String> res = new ArrayList<>();
+        if (s == null || wordDict == null)
+            return res;
+        wordBreakHelper(s, 0, wordDict, "", res);
+        return res;
+    }
+
+    private void wordBreakHelper(String s, int i, Set<String> wordDict, String pre, List<String> res){
+        if (i == s.length()){
+            res.add(pre.substring(1));
+            return;
+        }
+        for (int k = i+1; k <= s.length(); ++k){
+            String sub = s.substring(i, k);
+            if (wordDict.contains(sub))
+                wordBreakHelper(s, k, wordDict, pre + " " + sub, res);
+        }
     }
 
     //141
@@ -2956,6 +3165,69 @@ public class Solution {
                 ++size;
             }
         }
+    }
+
+    //147
+    public ListNode insertionSortList(ListNode head) {
+        if (head == null || head.next == null)
+            return head;
+        ListNode dummy = new ListNode(0);
+        dummy.next = head;
+        ListNode cur = head, pre;
+
+        while (cur != null && cur.next != null){
+            if (cur.val <= cur.next.val)
+                cur = cur.next;
+            else {
+                pre = dummy;
+                while (pre.next.val <= cur.next.val)
+                    pre = pre.next;
+                ListNode x = cur.next;
+                cur.next = cur.next.next;
+                x.next = pre.next;
+                pre.next = x;
+            }
+        }
+        return dummy.next;
+    }
+
+    //148
+    public ListNode sortList(ListNode head) {
+        //like postorder
+        if (head == null || head.next == null)
+            return head;
+        ListNode slow, fast;
+        slow = fast = head;
+        //we must cut off into two halves!!!!!!
+        while (fast != null && fast.next != null && fast.next.next != null){
+            slow = slow.next;
+            fast = fast.next.next;
+        }
+        ListNode rh = slow.next;
+        slow.next = null;
+
+        return mergeList(sortList(head), sortList(rh));
+    }
+
+    private ListNode mergeList(ListNode la, ListNode lb){
+        if (la == null)
+            return lb;
+        if (lb == null)
+            return la;
+        ListNode dummy = new ListNode(0), pre = dummy;
+        while (la != null && lb != null){
+            if (la.val < lb.val){
+                pre.next = la;
+                la = la.next;
+            }
+            else {
+                pre.next = lb;
+                lb = lb.next;
+            }
+            pre = pre.next;
+        }
+        pre.next = la != null? la: lb;
+        return dummy.next;
     }
 
     //149
@@ -3183,6 +3455,26 @@ public class Solution {
             buf4Idx = (buf4Idx + x) % 4;
         }
         return i;
+    }
+
+    //159
+    public int lengthOfLongestSubstringTwoDistinct(String s) {
+        if (s == null || s.length() == 0)
+            return 0;
+        Map<Character, Integer> hm = new HashMap<>();
+        int l = 0, r = 0, max = 0;
+        while (r < s.length()){
+            hm.put(s.charAt(r), hm.getOrDefault(s.charAt(r), 0) + 1);
+            while (hm.size() > 2){
+                hm.put(s.charAt(l), hm.get(s.charAt(l)) - 1);
+                if (hm.get(s.charAt(l)) == 0)
+                    hm.remove(s.charAt(l));
+                ++l;
+            }
+            max = Math.max(max, r - l + 1);
+            ++r;
+        }
+        return max;
     }
 
     //160
@@ -4030,6 +4322,22 @@ public class Solution {
         return false;
     }
 
+    //221
+    public int maximalSquare(char[][] matrix) { //note it's a char array
+        if (matrix == null || matrix.length == 0 || matrix[0].length == 0)
+            return 0;
+        //dp is (i, j) being the bottom right cornor,dp[i][j] = Math.min(dp[i-1][j-1], dp[i-1][j], dp[i][j-1]) + 1,  note minimum is 0, min square size is 1;
+        int[][] dp = new int[matrix.length + 1][matrix[0].length + 1];
+        int res = 0;
+        for (int i = 0; i < matrix.length; ++i){
+            for (int j = 0; j < matrix[0].length; ++j){
+                dp[i+1][j+1] = (matrix[i][j] == '1'? Math.min(dp[i][j], Math.min(dp[i][j+1], dp[i+1][j])) + 1: 0);//note not add matrix[i][j], if others are 1, itself is 0
+                res = Math.max(res, dp[i+1][j+1]);
+            }
+        }
+        return res*res;//return area
+    }
+
     //222
     public int countNodes(TreeNode root) {
         if (root == null)
@@ -4049,6 +4357,15 @@ public class Solution {
             return (1 << lh) - 1;
         else
             return countNodes(root.left) + countNodes(root.right) + 1;
+    }
+
+    //223
+    public int computeArea(int A, int B, int C, int D, int E, int F, int G, int H) {
+        int size1 = (D - B) * (C - A);
+        int size2 = (H - F) * (G - E);
+        if (E > C || G < A || F > D || H < B)
+            return size1 + size2;
+        return size1 + size2 - (Math.min(D, H) - Math.max(F, B))*(Math.min(C, G) - Math.max(A,E));
     }
 
     //224
@@ -4127,6 +4444,50 @@ public class Solution {
         invertTree(root.left);
         invertTree(root.right);
         return root;
+    }
+
+    //227
+    public int calculate2(String s) {
+        if (s == null)
+            return 0;
+        s = s.replaceAll("\\s+", ""); //string.replaceAll(str, str) \\s+ is all space!!!
+        if (s.length() == 0)
+            return 0;
+        s = s + "+"; //need to clear the last operand
+        int res = 0, last = 0, cur = 0;
+        char ops ='+';
+        for (int i = 0; i < s.length(); ++i){
+            if (Character.isDigit(s.charAt(i))) {
+                cur = cur * 10 +  s.charAt(i) - '0';
+            }
+            else {
+                int tlast = 0;
+                switch(ops){
+                    case '+':
+                        res += cur;
+                        tlast = cur;
+                        break;
+                    case '-':
+                        res -= cur;
+                        tlast = -cur;
+                        break;
+                    case '*':
+                        res = res - last + last * cur;
+                        tlast = last * cur;
+                        break;
+                    case '/':
+                        res = res - last + last / cur; //t != 0
+                        tlast = last / cur;
+                        break;
+                    default:
+                        break;
+                }
+                last = tlast;
+                cur = 0;
+                ops = s.charAt(i);
+            }
+        }
+        return res;
     }
 
     //228
@@ -4954,6 +5315,35 @@ public class Solution {
         }
     }
 
+    //272
+    public List<Integer> closestKValues(TreeNode root, double target, int k) {
+        List<Integer> res = new ArrayList<>();
+        if (root == null || k <= 0)
+            return res;
+        Queue<Integer> queue = new LinkedList<>();
+        closestKValuesHelper(root, queue, k, target);
+        res.addAll(queue);
+        return res;
+    }
+    private boolean foundClosestK;
+    private void closestKValuesHelper(TreeNode root, Queue<Integer> queue, int k, double target){
+        if (root == null)
+            return;
+        if (!foundClosestK)
+            closestKValuesHelper(root.left, queue, k, target);
+        if (queue.size() < k)
+            queue.offer(root.val);
+        else if (Math.abs(target - queue.peek()) > Math.abs(root.val - target)){ //abs calculate the distance
+            queue.poll();
+            queue.offer(root.val);
+        }
+        else
+            foundClosestK = true;
+        if (!foundClosestK)
+            closestKValuesHelper(root.right, queue, k, target);
+    }
+
+
     //273
     public String numberToWords(int num) {
         if (num == 0)
@@ -5020,16 +5410,20 @@ public class Solution {
     }
 
     //276
-//    public int numWays(int n, int k) {
-//        if (n < 1 || k < 1)
-//            return 0;
-//        if (n <= 2)
-//            return k;
-//        int first = k, second = k, res = 0;
-//        for (int i = 3; i <= n; ++i){
-//            res =
-//        }
-//    }
+    public int numWays(int n, int k) {
+        if (n < 1 || k < 1)
+            return 0;
+        // dp[i] = dp[i-2]*(k-1) + dp[i-1]*(k-1) //first one means at i we are the same as i-1, so i-2* k; second one means i we are differnet with i-1, so still k-1
+        int[] dp = {k, k*k};
+        if (n <= 2)
+            return dp[n-1];
+        for (int i = 2; i < n; ++i){
+            int x = dp[1] * (k-1) + dp[0]* (k-1);
+            dp[0] = dp[1];
+            dp[1] = x;
+        }
+        return dp[dp.length - 1];
+     }
 
     //277
     boolean knows(int a, int b){return true;}
@@ -5130,33 +5524,34 @@ public class Solution {
     }
 
     //282
-//    public List<String> addOperators(String num, int target) {
-//        List<String> res = new ArrayList<>();
-//        if (num == null || num.length() == 0)
-//            return res;
-//        StringBuilder sb = new StringBuilder();
-//        sb.append(num.charAt(0));
-//        addOperatorHelper(num, 1, num.charAt(0) - '0', target, sb, res);
-//        return res;
-//    }
-//
-//    private void addOperatorHelper(String num, int start, int pre, int target, StringBuilder sb, List<String> res){
-//        if (start == num.length()){
-//            if (pre == target)
-//                res.add(sb.toString());
-//            return;
-//        }
-//        char c = num.charAt(start);
-//        char[] ops = {'+', '-', '*'};
-//        for (char o : ops){
-//            sb.append(o);
-//            switch(o){
-//                case '+':
-//                    addOperatorHelper(num, start + 1, pre )
-//            }
-//        }
-//
-//    }
+    public List<String> addOperators(String num, int target) {
+        List<String> res = new ArrayList<>();
+        if (num == null || num.length() == 0)
+            return res;
+        addOperatorsHelper(num, target, 0, 0, 0, "", res);
+        return res;
+    }
+
+    private void addOperatorsHelper(String num, int target, int start, long pre, long last, String combi, List<String> res){
+        if (start == num.length()){
+            if (pre == target)
+                res.add(combi);
+            return;
+        }
+        for (int i = start + 1; i <= num.length(); ++i){
+            String s = num.substring(start, i);
+            if (s.length() > 1 && s.charAt(0) == '0') //and note we dont take 05!!
+                continue;
+            long si = Long.parseLong(s); //note here it can overflow INF + 2 and like so need to treat as long!
+            if (combi.length() == 0)//first one
+                addOperatorsHelper(num, target, i, si, si, s, res);
+            else {
+                addOperatorsHelper(num, target, i, pre + si, si, combi + "+" + s, res);
+                addOperatorsHelper(num, target, i, pre - si, -si, combi + "-" + s, res);
+                addOperatorsHelper(num, target, i, pre - last + si * last, last * si, combi + "*" + s, res);
+            }
+        }
+    }
 
     //283
     public void moveZeroes(int[] nums) {
@@ -5237,12 +5632,46 @@ public class Solution {
     }
 
     //286
-//    public void wallsAndGates(int[][] rooms) {
-//        if (rooms == null || rooms.length == 0 || rooms[0].length == 0)
-//            return;
-//
-//
-//    }
+    public void wallsAndGates(int[][] rooms) {
+        if (rooms == null || rooms.length == 0 || rooms[0].length == 0)
+            return;
+        final int[][] offset = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}};
+        int cur = 0, next = 0, lvl = 0;
+        Queue<Integer> queue = new LinkedList<>();
+        for (int i = 0; i < rooms.length; ++i) {
+            for (int j = 0; j < rooms[0].length; ++j) {
+                if (rooms[i][j] == 0) {
+                    int c = i * rooms[0].length + j;
+                    queue.offer(c); //the trick here is here, we dont start from every 0 and traverse the """"entire table""""
+                                    //instead, we list all node at dist = 0, 1,2 level all at once, the INF closer to one spot wont be further shorten by another
+                    ++cur;
+                }
+            }
+        }
+
+        while (!queue.isEmpty()) {
+            int t = queue.poll();
+            int x = t / rooms[0].length;
+            int y = t % rooms[0].length;
+
+            for (int k = 0; k < offset.length; ++k) {
+                int nx = x + offset[k][0];
+                int ny = y + offset[k][1];
+                int nt = nx * rooms[0].length + ny;
+                if (nx >= 0 && nx < rooms.length && ny >= 0 && ny < rooms[0].length && rooms[nx][ny] == Integer.MAX_VALUE) {
+                    rooms[nx][ny] = lvl + 1; //only update for the INF ones, nearer will be garanteed to be update earlier!!!
+                    queue.offer(nt);
+                    ++next;
+                }
+            }
+
+            if (--cur == 0) {
+                cur = next;
+                next = 0;
+                lvl += 1;
+            }
+        }
+    }
 
     //287
     public int findDuplicate(int[] nums) {
@@ -5931,6 +6360,26 @@ public class Solution {
         }
     }
 
+    //325
+    public int maxSubArrayLen(int[] nums, int k) {
+        //use hashmap to store prefix sum: meaning [sum from 0 to cur i, i] and move right and check if sum - k exist, then it's between after that spot and cur
+        //prefix + k = sum(0 to cur)
+        //both neg and pos numbers cannot use two pointers.
+        if (nums == null || nums.length == 0)
+            return 0;
+        int max = 0, sum = 0;
+        Map<Integer, Integer> hm = new HashMap<>(); //prefix sum
+        hm.put(0, -1); //so that we dont update prefix = 0 by some middle point, sum - k will be every elem from index = 0 to cur
+        for (int i = 0; i < nums.length; ++i){
+            sum += nums[i];
+            if (hm.containsKey(sum - k))
+                max = Math.max(max, i - hm.get(sum - k));
+            if (!hm.containsKey(sum))
+                hm.put(sum, i); //we dont update prefix sum cuz we want longest
+        }
+        return max;
+    }
+
     //326
     public boolean isPowerOfThree(int n) {
         //a trick solution will be get the maximum of power of 3 X, X % n == 0 will be power of three
@@ -6167,6 +6616,33 @@ public class Solution {
         return res;
     }
 
+    //340
+    public int lengthOfLongestSubstringKDistinct(String s, int k) {
+        if (s == null || s.length() == 0)
+            return 0;
+        Map<Character, Integer> hm = new HashMap<>();
+        int l = 0, r = 0, max = 0;
+
+        while (r < s.length()){
+            //put, if larger, shrink left
+            char rc = s.charAt(r);
+            hm.put(rc, hm.getOrDefault(rc, 0) + 1);
+            if (hm.size() > k){
+                max = Math.max(max, r - l);
+                while (hm.size() > k){
+                    char lc = s.charAt(l);
+                    hm.put(lc, hm.get(lc) - 1);
+                    if (hm.get(lc) == 0)
+                        hm.remove(lc);
+                    ++l;
+                }
+            }
+            ++r;
+        }
+        max = Math.max(max, r - l);
+        return max;
+    }
+
     //341
     public class NestedIterator implements Iterator<Integer> {
         Deque<Iterator<NestedInteger>> st;
@@ -6336,6 +6812,43 @@ public class Solution {
         */
     }
 
+    //348
+    public class TicTacToe {
+        //This q just need to return if there is a win/lose, not to use gaming theory to act as computer
+        //counters for rows/cols/diags/anti_diags
+        private int[] rows, cols;
+        private int diags, anti_diags, size;
+        /** Initialize your data structure here. */
+        public TicTacToe(int n) {
+            rows = new int[n];
+            cols = new int[n];
+            size = n;
+        }
+
+        /** Player {player} makes a move at ({row}, {col}).
+         @param row The row of the board.
+         @param col The column of the board.
+         @param player The player, can be either 1 or 2.
+         @return The current winning condition, can be either:
+         0: No one wins.
+         1: Player 1 wins.
+         2: Player 2 wins. */
+        public int move(int row, int col, int player) {
+            player = (player == 1? player: -1);
+            rows[row] += player;
+            cols[col] += player;
+            diags += (row == col? player: 0);
+            anti_diags += (row + col == size-1? player: 0); //note anti_diags is x + y == N - 1
+            //immediately know the change make a win or lose
+            if (Math.abs(rows[row]) == size ||
+                    Math.abs(cols[col]) == size ||
+                    Math.abs(diags) == size ||
+                    Math.abs(anti_diags) == size)
+                return player == 1? 1: 2;
+            return 0;
+        }
+    }
+
     //349
     public int[] intersection(int[] nums1, int[] nums2) {
         if (nums1 == null || nums1.length == 0 || nums2 == null || nums2.length == 0)
@@ -6420,21 +6933,113 @@ public class Solution {
     }
 
     //352
-//    public class SummaryRanges {
-//
-//        /** Initialize your data structure here. */
-//        public SummaryRanges() {
-//
-//        }
-//
-//        public void addNum(int val) {
-//
-//        }
-//
-//        public List<Interval> getIntervals() {
-//
-//        }
-//    }
+    public class SummaryRanges {
+        private TreeMap<Integer, Interval> tm; //here must use TreeMap not Map, because otehrwise lowerEntry() and like wont be available to Map interface!
+
+        /** Initialize your data structure here. */
+        public SummaryRanges() {
+            tm = new TreeMap<>(); //key -start
+        }
+
+        public void addNum(int val) {
+            if (tm.containsKey(val))
+                return; //otherwise lower and higher will not make sense
+            Integer lower = tm.lowerKey(val);
+            Integer higher= tm.higherKey(val);
+            //move betwen [***0]_1 _2 _3 [***] 4 cases
+            if (lower != null && higher != null && tm.get(lower).end + 1 == val && val + 1 == higher){
+                tm.get(lower).end = tm.get(higher).end;
+                tm.remove(higher);
+            }
+            else if (lower != null && val <= tm.get(lower).end + 1){
+                tm.get(lower).end = Math.max(tm.get(lower).end, val);
+            }
+            else if (higher != null && val + 1 == higher){
+                Interval ni = new Interval(val, tm.get(higher).end);
+                tm.put(val, ni);
+                tm.remove(higher);
+            }
+            else
+                tm.put(val, new Interval(val, val));
+        }
+
+        public List<Interval> getIntervals() {
+            return new ArrayList<>(tm.values());
+        }
+    }
+
+    //353
+    public class SnakeGame {
+
+        /** Initialize your data structure here.
+         @param width - screen width
+         @param height - screen height
+         @param food - A list of food positions
+         E.g food = [[1,1], [1,0]] means the first food is positioned at [1,1], the second is at [1,0]. */
+
+        private int width, height, foodIdx, score;
+        private int[][] food;
+        Deque<Integer> snake; //this contains the whole snake; move : add/remove head tail
+        Set<Integer> body; // this quickly checks if eats itself. so each move is o(1) lookthrough deque is o(n)
+
+        public SnakeGame(int width, int height, int[][] food) {
+            this.width = width;
+            this.height = height;
+            this.food = food;
+            snake = new ArrayDeque<>();
+            body = new HashSet();
+            snake.offerLast(0);
+            body.add(0);
+        }
+
+        /** Moves the snake.
+         @param direction - 'U' = Up, 'L' = Left, 'R' = Right, 'D' = Down
+         @return The game's score after the move. Return -1 if game over.
+         Game over when snake crosses the screen boundary or bites its body. */
+        public int move(String direction) {
+            if (direction == null || !"ULRD".contains(direction))
+                return -1;
+            // first remove tail, then calculate new head, validate --> first make sure not eat itself or go out of bounder
+            //then check if it eats food, it does, bump the score and add the tail back
+
+            int tail = snake.peekLast(); //cannot remove because snake could be len = 1
+            body.remove(tail); //but need to mark off the set
+
+            int head = snake.peekFirst();
+            int hr = head / width;
+            int hc = head % width;
+            switch(direction){
+                case "U":
+                    --hr;
+                    break;
+                case "D":
+                    ++hr;
+                    break;
+                case "L":
+                    --hc;
+                    break;
+                case "R":
+                    ++hc;
+                    break;
+                default:
+                    break;
+            }
+            head = hr * width + hc;
+            if (hr < 0 || hr >= height || hc < 0 || hc >= width || body.contains(head))
+                return -1;
+            snake.offerFirst(head);
+            body.add(head);
+
+            if (foodIdx < food.length && food[foodIdx][0] == hr && food[foodIdx][1] == hc){
+                body.add(snake.peekLast());
+                ++foodIdx;
+                ++score;
+            }
+            else
+                snake.pollLast();
+            return score;
+        }
+    }
 
     //354
     public int maxEnvelopes(int[][] envelopes) {
@@ -6484,6 +7089,21 @@ public class Solution {
         }
         return true;
 
+    }
+
+    //357
+    public int countNumbersWithUniqueDigits(int n) {
+        //n=1 10 n>= 2 9*9*8*7 every digit is 11-k purely math permutation
+        if (n <= 0)
+            return 1; //res is [0, 10^x)
+        if (n == 1)
+            return 10;
+        int tmp = 9,res = 10;
+        for (int k = 2; k <= n; ++k){
+            tmp *= (11 - k);
+            res += tmp;//cumulative under 10^x
+        }
+        return res;
     }
 
     //359
@@ -6625,6 +7245,11 @@ public class Solution {
             return hits;
         }
     }
+
+    //363
+//    public int maxSumSubmatrix(int[][] matrix, int k) {
+//
+//    }
 
     //366
     public List<List<Integer>> findLeaves(TreeNode root) {
@@ -6892,6 +7517,49 @@ public class Solution {
         }
     }
 
+    //382
+    /* Resevoir sampling , sample K elem from a N sequece
+    S has items to sample, R will contain the result
+
+    ReservoirSample(S[1..n], R[1..k])
+    // fill the reservoir array
+    for i = 1 to k
+        R[i] := S[i] FILL THE FIRST K
+
+    // FROM K+1, LOOP AND GET RANDOM NUMBER UP TO CUR, IF FALL IN THE RESEVOIR, REPLACE WITH CUR
+    for i = k+1 to n
+        j := random(1, i)   // important: inclusive range
+        if j <= k
+            R[j] := S[i]
+    */
+    public class Solution1 {
+        private ListNode head;
+        private Random random;
+        /** @param head The linked list's head.
+        Note that the head is guaranteed to be not null, so it contains at least one node. */
+        public Solution1(ListNode head) {
+            this.head = head;
+            random = new Random();
+        }
+
+        /** Returns a random node's value. */
+        public int getRandom() {
+            //set a k = 1 resevoir
+            if (head == null) return -1;
+            ListNode cur = head;
+            int res = cur.val;
+            int i = 1;
+            while (cur != null){
+                if (random.nextInt(i) == 0) { //K = 1 SIZE RESEVOIR
+                    res = cur.val; //the res is the resevoir
+                }
+                cur = cur.next;
+                ++i;
+            }
+            return res;
+        }
+    }
+
     //383
     public boolean canConstruct(String ransomNote, String magazine) {
         if (ransomNote == null || magazine == null)
@@ -6908,11 +7576,11 @@ public class Solution {
     }
 
     //384
-    public class Solution1 {
+    public class Solution3 {
         private int[] nums;
         private int[] lnums;
         private Random random;
-        public Solution1(int[] nums) {
+        public Solution3(int[] nums) {
             this.nums = nums;
             this.lnums = Arrays.copyOf(nums, nums.length); //Here Arrays.copyOf(int[] a, int newLen) return a deep copy of Array!
             random = new Random();
@@ -7100,6 +7768,40 @@ public class Solution {
             max = Math.max(max, t);
         }
         return max;
+    }
+    //397
+    public int integerReplacement(int n) {
+        if (n <= 1)
+            return 0;
+        if (n % 2 == 0)
+            return 1 + integerReplacement(n / 2);
+        else {
+            return 1 + Math.min(integerReplacement(n - 1), integerReplacement(n + 1));
+        }
+    }
+
+    //398
+    public class Solution2 {
+        private int[] nums;
+        private Random random;
+
+        public Solution2(int[] nums) {
+            this.nums = nums;
+            random = new Random();
+        }
+
+        public int pick(int target) {
+            //K = 1 Resevoir; resevoir sampling must walk through the entire sequence!
+            int res = -1;
+            for (int cnt = 0, i = 0; i < nums.length; ++i){
+                if (nums[i] == target){
+                    ++cnt;
+                    if (random.nextInt(cnt) == 0)
+                        res = i;
+                }
+            }
+            return res;
+        }
     }
 
     //404
